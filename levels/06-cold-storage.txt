@@ -1,0 +1,17 @@
+# Everything at once, with a tight move budget. Intended to sit well under 50% for the greedy bot.
+name 06 Cold Storage
+size 8 8
+moves 17
+colors 5
+goal ice 12
+goal box 6
+goal grass 8
+grid
+. . . . . . . .
+. b . . . . b .
+. . .i .i .i .i . .
+.g .g .I .I .I .I .g .g
+.g .g .I .I .I .I .g .g
+. . .i .i .i .i . .
+. B . . . . B .
+. . . . . . . .

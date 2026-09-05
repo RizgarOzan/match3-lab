@@ -1,0 +1,16 @@
+# Frozen pieces cannot move, so the middle has to be melted from the outside in.
+name 04 Thin Ice
+size 7 8
+moves 20
+colors 5
+goal ice 16
+goal color 1 15
+grid
+. . . . . . .
+. . . . . . .
+. .i .i .i .i .i .
+. .i .I .I .I .i .
+. .i .I .I .I .i .
+. .i .i .i .i .i .
+. . . . . . .
+. . . . . . .

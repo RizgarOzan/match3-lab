@@ -91,8 +91,8 @@ namespace Match3Lab.Core
                     errors.Add("cell " + i + " is a box with 0 hit points");
                 if (c.Kind == CellSpecKind.Hole && (c.Ice > 0 || c.Grass > 0))
                     errors.Add("cell " + i + " is a hole but has obstacle layers");
-                if (c.Kind == CellSpecKind.Box && c.Ice > 0)
-                    errors.Add("cell " + i + " is a box with ice; ice needs a piece under it");
+                if ((c.Kind == CellSpecKind.Box || c.Kind == CellSpecKind.Empty) && c.Ice > 0)
+                    errors.Add("cell " + i + " has ice but no piece under it");
                 if (c.Kind != CellSpecKind.Hole && c.Kind != CellSpecKind.Box) playable++;
                 grass += c.Grass;
                 ice += c.Ice;

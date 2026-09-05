@@ -1,0 +1,14 @@
+# A warm-up: one colour goal, generous moves, no obstacles.
+name 01 First Steps
+size 7 7
+moves 11
+colors 4
+goal color 0 20
+grid
+. . . . . . .
+. . . . . . .
+. . . . . . .
+. . . . . . .
+. . . . . . .
+. . . . . . .
+. . . . . . .

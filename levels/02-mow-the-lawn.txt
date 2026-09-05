@@ -1,0 +1,14 @@
+# Grass under the middle rows; teaches that clearing happens where the match is.
+name 02 Mow the Lawn
+size 7 7
+moves 12
+colors 4
+goal grass 21
+grid
+. . . . . . .
+. . . . . . .
+.g .g .g .g .g .g .g
+.g .g .g .g .g .g .g
+.g .g .g .g .g .g .g
+. . . . . . .
+. . . . . . .

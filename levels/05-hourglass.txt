@@ -1,0 +1,17 @@
+# Holes shape the board into two rooms joined by a neck; cascades stop at the neck.
+name 05 Hourglass
+size 7 9
+moves 18
+colors 5
+goal color 2 24
+goal grass 6
+grid
+. . . . . . .
+. . . . . . .
+# . . . . . #
+# # .g .g .g # #
+# # # . # # #
+# # .g .g .g # #
+# . . . . . #
+. . . . . . .
+. . . . . . .

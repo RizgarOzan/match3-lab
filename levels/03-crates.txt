@@ -1,0 +1,15 @@
+# Boxes only break from adjacent matches; the ones in the corners are the lesson.
+name 03 Crates
+size 7 8
+moves 15
+colors 5
+goal box 8
+grid
+b . . . . . b
+. . . . . . .
+. . b . b . .
+. . . . . . .
+. . . B . . .
+. . . . . . .
+. . . . . . .
+b . . . . . b

@@ -1,0 +1,21 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Test the rules core
+        run: dotnet test tests/Match3Lab.Core.Tests --nologo
+      - name: Validate the sample levels
+        run: dotnet run --project tools/Match3Lab.Cli -- validate levels
+      - name: Smoke-run the simulator
+        run: dotnet run --project tools/Match3Lab.Cli -- curve levels --runs 100
