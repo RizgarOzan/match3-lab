@@ -41,6 +41,7 @@ namespace Match3Lab.UnityEditor
         private float _bandHigh = 0.75f;
         private SimulationResult _greedy;
         private SimulationResult _random;
+        private string _tuneLog;
 
         [MenuItem("Match3 Lab/Level Editor")]
         public static void Open()
@@ -311,7 +312,9 @@ namespace Match3Lab.UnityEditor
                 EditorGUILayout.BeginHorizontal();
                 _simRuns = EditorGUILayout.IntSlider("Runs", _simRuns, 100, 5000);
                 if (GUILayout.Button("Simulate", GUILayout.Width(90))) RunSimulation();
+                if (GUILayout.Button("Auto-tune moves", GUILayout.Width(110))) AutoTune();
                 EditorGUILayout.EndHorizontal();
+                if (!string.IsNullOrEmpty(_tuneLog)) EditorGUILayout.HelpBox(_tuneLog, MessageType.None);
                 EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.LabelField("Target win-rate band (greedy)", GUILayout.Width(190));
                 EditorGUILayout.MinMaxSlider(ref _bandLow, ref _bandHigh, 0f, 1f);
@@ -327,6 +330,19 @@ namespace Match3Lab.UnityEditor
             var options = new SimulationOptions { Runs = _simRuns };
             _greedy = Simulator.Run(_level, () => new GreedyBot(), options);
             _random = Simulator.Run(_level, () => new RandomBot(), options);
+        }
+
+        /// <summary>Lets the tuner pick the move budget for the current band; the layout is untouched.</summary>
+        private void AutoTune()
+        {
+            var result = MoveBudgetTuner.Tune(_level, _bandLow, _bandHigh, () => new GreedyBot(), new SimulationOptions { Runs = Mathf.Min(_simRuns, 500) });
+            _tuneLog = result.Summary();
+            if (result.InBand && result.RecommendedMoves != _level.Moves)
+            {
+                _level.Moves = result.RecommendedMoves;
+                Changed();
+                _tuneLog = result.Summary();
+            }
         }
 
         private void DrawResult(SimulationResult r, bool judge)

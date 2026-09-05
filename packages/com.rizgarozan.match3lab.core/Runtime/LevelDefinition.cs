@@ -67,6 +67,21 @@ namespace Match3Lab.Core
 
         public CellSpec GetCell(int x, int y) => Cells[y * Width + x];
 
+        /// <summary>The same level with a different move budget. Cells and goals are shared, not copied — treat the result as read-only.</summary>
+        public LevelDefinition WithMoves(int moves)
+        {
+            return new LevelDefinition
+            {
+                Name = Name,
+                Width = Width,
+                Height = Height,
+                Moves = moves,
+                ColorCount = ColorCount,
+                Goals = Goals,
+                Cells = Cells,
+            };
+        }
+
         /// <summary>Human-readable problems with this definition; empty when it is valid.</summary>
         public List<string> Validate()
         {

@@ -52,6 +52,28 @@ namespace Match3Lab.Core.Tests
         }
 
         [Fact]
+        public void Tuner_finds_a_move_budget_inside_a_wide_band()
+        {
+            var level = SmallLevel(moves: 30, goals: "goal color 0 24");
+            var result = MoveBudgetTuner.Tune(level, 0.30, 0.90, () => new GreedyBot(), new SimulationOptions { Runs = 150 });
+
+            Assert.True(result.InBand, result.Summary());
+            Assert.InRange(result.WinRate, 0.30, 0.90);
+            Assert.True(result.RecommendedMoves < 30, "30 moves should be too easy: " + result.Summary());
+            Assert.True(result.Steps.Count <= 9, "binary search should need few steps, took " + result.Steps.Count);
+        }
+
+        [Fact]
+        public void Tuner_reports_when_no_budget_can_reach_the_band()
+        {
+            var level = SmallLevel(moves: 5, goals: "goal color 0 5000");
+            var result = MoveBudgetTuner.Tune(level, 0.30, 0.90, () => new GreedyBot(), new SimulationOptions { Runs = 20 }, maxMoves: 10);
+
+            Assert.False(result.InBand);
+            Assert.Contains("layout", result.Note);
+        }
+
+        [Fact]
         public void A_level_with_an_impossible_goal_has_zero_win_rate()
         {
             var level = SmallLevel(moves: 2, goals: "goal color 0 500");

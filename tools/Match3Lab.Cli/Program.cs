@@ -21,13 +21,17 @@ namespace Match3Lab.Cli
   m3lab sim <level.txt> [options]           play one level many times
   m3lab curve <dir> [options] [--csv f]     simulate every level in a folder, print the difficulty table
   m3lab show <level.txt> [--seed N]         print the starting board for a seed
+  m3lab tune <level.txt> [--band L:H] [--write]
+                                            find the move budget that puts the greedy win rate in the band
 
 options
-  --runs N        games per level (default 1000)
+  --runs N        games per level (default 1000; tune uses 400)
   --bot NAME      greedy | random | both (default both)
   --seed N        first seed (default 1)
   --threads N     parallelism (default: all cores)
   --csv FILE      also write the curve as CSV
+  --band L:H      target greedy win-rate band for tune, e.g. 0.45:0.75 (default)
+  --write         tune: rewrite the level file's moves line with the recommendation
 ";
 
         private static int Main(string[] args)
@@ -42,6 +46,7 @@ options
                     case "sim": return Sim(args.ElementAtOrDefault(1), opts);
                     case "curve": return Curve(args.ElementAtOrDefault(1), opts);
                     case "show": return Show(args.ElementAtOrDefault(1), opts);
+                    case "tune": return Tune(args.ElementAtOrDefault(1), opts);
                     default: Console.Write(Usage); return 1;
                 }
             }
@@ -60,10 +65,14 @@ options
         private sealed class Options
         {
             public int Runs = 1000;
+            public bool RunsGiven;
             public string Bot = "both";
             public ulong Seed = 1;
             public int Threads = Environment.ProcessorCount;
             public string Csv;
+            public double BandLow = 0.45;
+            public double BandHigh = 0.75;
+            public bool Write;
         }
 
         private static Options ParseOptions(string[] args)
@@ -74,7 +83,16 @@ options
                 string next() => i + 1 < args.Length ? args[++i] : throw new ArgumentException("missing value after " + args[i]);
                 switch (args[i])
                 {
-                    case "--runs": o.Runs = int.Parse(next(), CultureInfo.InvariantCulture); break;
+                    case "--runs": o.Runs = int.Parse(next(), CultureInfo.InvariantCulture); o.RunsGiven = true; break;
+                    case "--band":
+                    {
+                        var parts = next().Split(':');
+                        if (parts.Length != 2) throw new ArgumentException("--band expects L:H, e.g. 0.45:0.75");
+                        o.BandLow = double.Parse(parts[0], CultureInfo.InvariantCulture);
+                        o.BandHigh = double.Parse(parts[1], CultureInfo.InvariantCulture);
+                        break;
+                    }
+                    case "--write": o.Write = true; break;
                     case "--bot": o.Bot = next(); break;
                     case "--seed": o.Seed = ulong.Parse(next(), CultureInfo.InvariantCulture); break;
                     case "--threads": o.Threads = int.Parse(next(), CultureInfo.InvariantCulture); break;
@@ -176,6 +194,30 @@ options
                 Console.WriteLine("wrote " + o.Csv);
             }
             return 0;
+        }
+
+        private static int Tune(string path, Options o)
+        {
+            string file = LevelFiles(path)[0];
+            string text = File.ReadAllText(file);
+            var level = LevelText.Parse(text);
+            var options = new SimulationOptions { Runs = o.RunsGiven ? o.Runs : 400, FirstSeed = o.Seed, MaxDegreeOfParallelism = o.Threads };
+            var result = MoveBudgetTuner.Tune(level, o.BandLow, o.BandHigh, () => new GreedyBot(), options);
+
+            Console.WriteLine(level.Name + " — band " + F(o.BandLow * 100, 0) + "–" + F(o.BandHigh * 100, 0) + "% (greedy, " + options.Runs + " runs per step)");
+            Console.WriteLine(result.Summary());
+
+            if (o.Write && result.InBand && result.RecommendedMoves != level.Moves)
+            {
+                // Replace only the moves line so comments and formatting survive.
+                var lines = text.Replace("\r\n", "\n").Split('\n');
+                for (int i = 0; i < lines.Length; i++)
+                    if (lines[i].TrimStart().StartsWith("moves ", StringComparison.OrdinalIgnoreCase))
+                        lines[i] = "moves " + result.RecommendedMoves;
+                File.WriteAllText(file, string.Join("\n", lines));
+                Console.WriteLine("wrote moves " + result.RecommendedMoves + " to " + Path.GetFileName(file));
+            }
+            return result.InBand ? 0 : 3;
         }
 
         private static string F(double v, int digits) => v.ToString("F" + digits, CultureInfo.InvariantCulture);
