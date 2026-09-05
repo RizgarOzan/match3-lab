@@ -30,6 +30,24 @@ namespace Match3Lab.Unity
         private Pcg32 _botRng;
         private readonly List<Move> _moveBuffer = new List<Move>();
 
+        /// <summary>The game being played. Read-only for tests and tools; mutate only through moves.</summary>
+        public Game Current => _game;
+        public bool IsBusy => _busy;
+        public int LevelCount => _levels?.Count ?? 0;
+
+        /// <summary>Lets the greedy bot play up to <paramref name="count"/> moves with full animation. Used by the play-mode tests.</summary>
+        public IEnumerator PlayMovesWithBot(int count)
+        {
+            for (int i = 0; i < count && _game.Status == GameStatus.Playing; i++)
+            {
+                while (_busy) yield return null;
+                var moves = _game.LegalMoves(_moveBuffer);
+                if (moves.Count == 0) yield break;
+                yield return PlayAndPresent(_bot.Choose(_game, moves, _botRng));
+            }
+            while (_busy) yield return null;
+        }
+
         private void Awake()
         {
             _sprites = new SpriteFactory();
