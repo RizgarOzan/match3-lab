@@ -1,0 +1,16 @@
+{
+  "name": "Match3Lab.Unity",
+  "rootNamespace": "Match3Lab.Unity",
+  "references": [
+    "Match3Lab.Core"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
