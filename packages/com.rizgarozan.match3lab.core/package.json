@@ -1,0 +1,9 @@
+{
+  "name": "com.rizgarozan.match3lab.core",
+  "version": "0.1.0",
+  "displayName": "Match3Lab Core",
+  "description": "Engine-independent match-3 rules: board, matching, gravity, cascades, specials, goals. No UnityEngine references.",
+  "unity": "6000.0",
+  "author": { "name": "Rızgar Ozan", "url": "https://github.com/RizgarOzan" },
+  "license": "MIT"
+}

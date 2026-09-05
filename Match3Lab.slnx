@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Match3Lab.Core/Match3Lab.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Match3Lab.Core.Tests/Match3Lab.Core.Tests.csproj" />
+  </Folder>
+</Solution>
