@@ -59,7 +59,7 @@ namespace Match3Lab.Unity
 #endif
             }
 
-            var top = Rect(canvasGo.transform, "Top", new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1), new Vector2(0, -20), new Vector2(-40, 190), Panel);
+            var top = Rect(canvasGo.transform, "Top", new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1), new Vector2(0, -20), new Vector2(-40, 128), Panel);
             _title = Label(top.transform, "Title", 34, TextAnchor.UpperLeft, new Vector2(24, -18), new Vector2(-48, 44));
             _moves = Label(top.transform, "Moves", 30, TextAnchor.UpperRight, new Vector2(-24, -18), new Vector2(-48, 44));
             _moves.rectTransform.anchorMin = new Vector2(0, 1);

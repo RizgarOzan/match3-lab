@@ -51,7 +51,7 @@ namespace Match3Lab.UnityEditor
             PlayerSettings.productName = "Match3 Lab";
             PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Gzip;
             PlayerSettings.WebGL.decompressionFallback = true;
-            PlayerSettings.WebGL.template = "APPLICATION:Minimal";
+            PlayerSettings.WebGL.template = "PROJECT:Match3Lab";
             PlayerSettings.runInBackground = true;
 
             string output = Path.GetFullPath(Path.Combine(Application.dataPath, "..", WebGLOutput));
@@ -66,6 +66,30 @@ namespace Match3Lab.UnityEditor
             var summary = report.summary;
             Debug.Log("WebGL build: " + summary.result + ", " + summary.totalSize / (1024 * 1024) + " MB, " + summary.totalTime + " → " + output);
             if (summary.result != BuildResult.Succeeded && Application.isBatchMode) EditorApplication.Exit(1);
+        }
+
+        /// <summary>Batch entry point: a Windows player, used by tools/capture to record screenshots and GIF frames.</summary>
+        public static void Windows()
+        {
+            LevelSync.Sync();
+            if (!File.Exists(ScenePath)) CreateDemoScene();
+            PlayerSettings.companyName = "Rızgar Ozan";
+            PlayerSettings.productName = "Match3 Lab";
+            PlayerSettings.defaultScreenWidth = 720;
+            PlayerSettings.defaultScreenHeight = 1280;
+            PlayerSettings.fullScreenMode = FullScreenMode.Windowed;
+            PlayerSettings.resizableWindow = false;
+
+            string output = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "../Builds/Windows/Match3Lab.exe"));
+            var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
+            {
+                scenes = new[] { ScenePath },
+                locationPathName = output,
+                target = BuildTarget.StandaloneWindows64,
+                options = BuildOptions.None,
+            });
+            Debug.Log("Windows build: " + report.summary.result + " → " + output);
+            if (report.summary.result != BuildResult.Succeeded && Application.isBatchMode) EditorApplication.Exit(1);
         }
 
         /// <summary>Batch entry point that only proves the scripts compile and the scene can be made.</summary>

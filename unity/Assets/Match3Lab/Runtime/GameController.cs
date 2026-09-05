@@ -65,7 +65,7 @@ namespace Match3Lab.Unity
 
             _board = new GameObject("Board").AddComponent<BoardView>();
             _board.transform.SetParent(transform, false);
-            _board.transform.localPosition = new Vector3(0, -0.4f, 0);
+            _board.transform.localPosition = new Vector3(0, -0.15f, 0);
 
             _input = gameObject.AddComponent<InputController>();
             _input.Bind(_board, _camera);
@@ -84,7 +84,41 @@ namespace Match3Lab.Unity
 
         private void Start()
         {
+            if (StartupWantsAutoplay(out int startLevel))
+            {
+                if (startLevel >= 0) _levelIndex = startLevel;
+                _auto = true;
+                _hud.SetAuto(true);
+                _input.Enabled = false;
+            }
             LoadLevel(_levelIndex);
+        }
+
+        /// <summary>
+        /// <c>-autoplay [n]</c> on the command line (standalone) or <c>?auto=1&amp;level=n</c> in the
+        /// page URL (WebGL) starts with the bot playing. Used by the capture script and the demo page's
+        /// "watch the bot" link.
+        /// </summary>
+        private static bool StartupWantsAutoplay(out int level)
+        {
+            level = -1;
+            var args = Environment.GetCommandLineArgs();
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (!string.Equals(args[i], "-autoplay", StringComparison.OrdinalIgnoreCase)) continue;
+                if (i + 1 < args.Length && int.TryParse(args[i + 1], out int n)) level = n;
+                return true;
+            }
+            string url = Application.absoluteURL;
+            if (string.IsNullOrEmpty(url) || url.IndexOf("auto=1", StringComparison.OrdinalIgnoreCase) < 0) return false;
+            int at = url.IndexOf("level=", StringComparison.OrdinalIgnoreCase);
+            if (at >= 0)
+            {
+                int end = at + 6;
+                while (end < url.Length && char.IsDigit(url[end])) end++;
+                int.TryParse(url.Substring(at + 6, end - at - 6), out level);
+            }
+            return true;
         }
 
         public void LoadLevel(int index)
@@ -110,9 +144,21 @@ namespace Match3Lab.Unity
         private void FitCamera(LevelDefinition level)
         {
             float aspect = (float)Screen.width / Screen.height;
-            float halfH = level.Height * 0.5f + 2.6f; // room for the HUD bands
+            float halfH = level.Height * 0.5f + 2.3f; // room for the HUD bands
             float halfW = (level.Width * 0.5f + 0.6f) / aspect;
             _camera.orthographicSize = Mathf.Max(halfH, halfW);
+        }
+
+        private int _lastScreenW, _lastScreenH;
+
+        private void Update()
+        {
+            if (Screen.width != _lastScreenW || Screen.height != _lastScreenH)
+            {
+                _lastScreenW = Screen.width;
+                _lastScreenH = Screen.height;
+                if (_game != null) FitCamera(_game.Level);
+            }
         }
 
         private void OnMoveRequested(Move move)

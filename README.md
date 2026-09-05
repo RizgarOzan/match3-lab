@@ -7,8 +7,15 @@ you can read in a diff, and a bot simulator that tells a level designer how hard
 in seconds, before a human ever plays it.
 
 > Status: core, simulator, CLI, Unity presentation, Level Editor and Difficulty Curve windows
-> are done (39 core tests + 2 play-mode tests). The WebGL demo is being built — see
-> [Roadmap](#roadmap).
+> are done (39 core tests + 2 play-mode tests); the WebGL build runs (8 MB). itch.io page and
+> a recorded GIF are next — see [Roadmap](#roadmap).
+
+<p align="center">
+  <img src="docs/media/level-02-midgame.png" width="30%" alt="Level 2 mid-game: a vertical and a horizontal rocket on the board, pieces falling">
+  <img src="docs/media/level-05-hourglass.png" width="30%" alt="Level 5 Hourglass: holes shape the board, grass under the neck">
+  <img src="docs/media/level-06-cold-storage.png" width="30%" alt="Level 6 Cold Storage: boxes, two-layer ice and grass at once">
+</p>
+<p align="center"><sub>Screenshots taken from the WebGL build with the bot playing (<code>?auto=1</code>). Every sprite is generated at start-up; the project ships no art.</sub></p>
 
 ## The question it answers
 

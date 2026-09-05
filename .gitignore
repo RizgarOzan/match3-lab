@@ -38,3 +38,9 @@ unity/Assets/Match3Lab/Resources/Levels/*.txt.meta
 unity-*.xml
 unity-*.log
 Builds/
+
+# Local tooling config
+.claude/
+
+# Full-size captures; the README uses the scaled copies next to them
+docs/media/raw/

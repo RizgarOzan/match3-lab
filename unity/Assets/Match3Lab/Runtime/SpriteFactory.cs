@@ -51,7 +51,8 @@ namespace Match3Lab.Unity
             switch (piece.Type)
             {
                 case PieceType.Normal: return Palette[piece.Color % Palette.Length];
-                case PieceType.Bomb: return new Color(0.20f, 0.20f, 0.24f);
+                // Grey-blue, not near-black: the floor tiles are dark and a dark bomb vanished into them.
+                case PieceType.Bomb: return new Color(0.50f, 0.54f, 0.64f);
                 case PieceType.RocketH:
                 case PieceType.RocketV: return new Color(0.95f, 0.95f, 0.97f);
                 default: return Color.white;
@@ -134,7 +135,10 @@ namespace Match3Lab.Unity
                     if (shade)
                     {
                         float light = Mathf.Clamp01(0.8f + 0.6f * (-u + v));
-                        c = Color.Lerp(color * 0.7f, color * 1.2f, light);
+                        c = Color.Lerp(color * 0.55f, color * 1.35f, light);
+                        // A bright specular dot top-left and a short fuse stub top-right make it read as a bomb.
+                        float spec = Mathf.Sqrt((u + 0.13f) * (u + 0.13f) + (v - 0.13f) * (v - 0.13f));
+                        c = Color.Lerp(c, Color.white, Mathf.Clamp01((0.07f - spec) / aa) * 0.85f);
                         c.a = 1f;
                     }
                     c.a *= a;
@@ -169,26 +173,47 @@ namespace Match3Lab.Unity
 
         private static Sprite RocketShape()
         {
-            // A vertical capsule with a coloured nose; BoardView rotates it for horizontal rockets.
+            // A vertical capsule (nose up) with two fins and a porthole; PieceView rotates it for horizontal rockets.
             var px = new Color[Size * Size];
             float aa = 1.5f / Size;
             var body = new Color(0.95f, 0.95f, 0.97f);
             var nose = new Color(0.91f, 0.30f, 0.33f);
             var fin = new Color(0.25f, 0.55f, 0.95f);
+            const float radius = 0.15f;   // body half-width
+            const float halfLen = 0.24f;  // body half-length before the round caps
             for (int y = 0; y < Size; y++)
             {
                 for (int x = 0; x < Size; x++)
                 {
                     float u = (x + 0.5f) / Size - 0.5f;
                     float v = (y + 0.5f) / Size - 0.5f;
-                    float capsule = Mathf.Max(Mathf.Abs(u) - 0.14f, 0f);
-                    float dy = Mathf.Max(Mathf.Abs(v) - 0.22f, 0f);
-                    float d = Mathf.Sqrt(capsule * capsule + dy * dy) - 0.0f;
-                    float inBody = Mathf.Clamp01((0.14f - Mathf.Sqrt(Mathf.Max(Mathf.Abs(u) - 0f, 0) * 0 + 0)) / aa);
-                    float a = Mathf.Clamp01((0.001f - d) / aa) * inBody;
-                    var c = body;
-                    if (v > 0.18f) c = nose;
-                    else if (v < -0.18f && Mathf.Abs(u) > 0.06f) c = fin;
+
+                    // Capsule: distance to the vertical segment, minus the radius.
+                    float cy = Mathf.Clamp(v, -halfLen, halfLen);
+                    float capsule = Mathf.Sqrt(u * u + (v - cy) * (v - cy)) - radius;
+                    float capsuleA = Mathf.Clamp01(-capsule / aa);
+
+                    // Fins: a trapezoid on each side of the lower body, wider at the bottom.
+                    float finTop = -0.14f, finBottom = -0.42f, finReach = 0.31f;
+                    float t = Mathf.InverseLerp(finTop, finBottom, v); // 0 at top, 1 at bottom
+                    float finHalfWidth = Mathf.Lerp(radius - 0.02f, finReach, t);
+                    bool inFinBand = v <= finTop && v >= finBottom;
+                    float finA = inFinBand ? Mathf.Clamp01((finHalfWidth - Mathf.Abs(u)) / aa) : 0f;
+
+                    float a = Mathf.Max(capsuleA, finA);
+                    if (a <= 0f) { px[y * Size + x] = Color.clear; continue; }
+
+                    Color c;
+                    if (capsuleA >= finA)
+                    {
+                        c = v > halfLen - 0.04f ? nose : body;
+                        float port = Mathf.Sqrt(u * u + (v - 0.06f) * (v - 0.06f)) - 0.065f;
+                        if (port < 0f) c = Color.Lerp(fin, body, Mathf.Clamp01((port + 0.02f) / aa) * 0.15f);
+                        // A darker right edge reads as a cylinder.
+                        if (u > radius * 0.45f && v <= halfLen - 0.04f) c *= 0.88f;
+                        c.a = 1f;
+                    }
+                    else c = fin;
                     c.a = a;
                     px[y * Size + x] = c;
                 }
