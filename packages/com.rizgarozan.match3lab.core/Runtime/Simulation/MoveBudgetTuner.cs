@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 
 namespace Match3Lab.Core.Simulation
@@ -17,7 +18,7 @@ namespace Match3Lab.Core.Simulation
         {
             public int Moves;
             public double WinRate;
-            public override string ToString() => Moves + " moves → " + (WinRate * 100).ToString("F1") + "%";
+            public override string ToString() => Moves + " moves → " + (WinRate * 100).ToString("F1", CultureInfo.InvariantCulture) + "%";
         }
 
         public sealed class Result
@@ -34,7 +35,7 @@ namespace Match3Lab.Core.Simulation
                 var sb = new StringBuilder();
                 foreach (var s in Steps) sb.Append("  ").Append(s).Append('\n');
                 sb.Append(InBand
-                    ? "recommend " + RecommendedMoves + " moves (" + (WinRate * 100).ToString("F1") + "%)"
+                    ? "recommend " + RecommendedMoves + " moves (" + (WinRate * 100).ToString("F1", CultureInfo.InvariantCulture) + "%)"
                     : "no budget lands in band: " + Note);
                 if (RecommendedMoves != OriginalMoves) sb.Append("  [was " + OriginalMoves + "]");
                 return sb.ToString();
@@ -76,14 +77,14 @@ namespace Match3Lab.Core.Simulation
             {
                 result.RecommendedMoves = maxMoves;
                 result.WinRate = cache[maxMoves];
-                result.Note = "even " + maxMoves + " moves only reaches " + (cache[maxMoves] * 100).ToString("F1") + "% — the layout, not the budget, is the problem";
+                result.Note = "even " + maxMoves + " moves only reaches " + (cache[maxMoves] * 100).ToString("F1", CultureInfo.InvariantCulture) + "% — the layout, not the budget, is the problem";
                 return result;
             }
             if (Measure(minMoves) > bandHigh)
             {
                 result.RecommendedMoves = minMoves;
                 result.WinRate = cache[minMoves];
-                result.Note = "even " + minMoves + " move wins " + (cache[minMoves] * 100).ToString("F1") + "% — the goals are too small for the board";
+                result.Note = "even " + minMoves + " move wins " + (cache[minMoves] * 100).ToString("F1", CultureInfo.InvariantCulture) + "% — the goals are too small for the board";
                 return result;
             }
 
@@ -99,7 +100,7 @@ namespace Match3Lab.Core.Simulation
             result.WinRate = rateAtLo;
             result.InBand = rateAtLo <= bandHigh;
             if (!result.InBand)
-                result.Note = "the win rate jumps from " + (Measure(lo - 1) * 100).ToString("F1") + "% to " + (rateAtLo * 100).ToString("F1") + "% between " + (lo - 1) + " and " + lo + " moves; the band is narrower than one move's worth of difficulty";
+                result.Note = "the win rate jumps from " + (Measure(lo - 1) * 100).ToString("F1", CultureInfo.InvariantCulture) + "% to " + (rateAtLo * 100).ToString("F1", CultureInfo.InvariantCulture) + "% between " + (lo - 1) + " and " + lo + " moves; the band is narrower than one move's worth of difficulty";
             return result;
         }
     }

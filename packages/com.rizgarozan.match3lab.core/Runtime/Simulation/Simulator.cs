@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -63,14 +64,14 @@ namespace Match3Lab.Core.Simulation
         {
             var sb = new StringBuilder();
             sb.Append(LevelName).Append(" · ").Append(BotName).Append(" · ").Append(Runs).Append(" runs\n");
-            sb.Append("  win rate        ").Append((WinRate * 100).ToString("F1")).Append("% ± ").Append((WinRateStandardError * 100).ToString("F1")).Append('\n');
-            sb.Append("  moves left/won  ").Append(AverageMovesLeftWhenWon.ToString("F2")).Append('\n');
-            sb.Append("  cascades/move   ").Append(AverageCascadesPerMove.ToString("F2")).Append('\n');
-            sb.Append("  avg score       ").Append(AverageScore.ToString("F0")).Append('\n');
+            sb.Append("  win rate        ").Append((WinRate * 100).ToString("F1", CultureInfo.InvariantCulture)).Append("% ± ").Append((WinRateStandardError * 100).ToString("F1", CultureInfo.InvariantCulture)).Append('\n');
+            sb.Append("  moves left/won  ").Append(AverageMovesLeftWhenWon.ToString("F2", CultureInfo.InvariantCulture)).Append('\n');
+            sb.Append("  cascades/move   ").Append(AverageCascadesPerMove.ToString("F2", CultureInfo.InvariantCulture)).Append('\n');
+            sb.Append("  avg score       ").Append(AverageScore.ToString("F0", CultureInfo.InvariantCulture)).Append('\n');
             sb.Append("  shuffles        ").Append(TotalShuffles).Append('\n');
             for (int i = 0; i < GoalCompletions.Length; i++)
-                sb.Append("  goal ").Append(i).Append(" done     ").Append((GoalCompletionRate(i) * 100).ToString("F1")).Append("%  avg ").Append((AverageGoalFraction(i) * 100).ToString("F0")).Append("%\n");
-            sb.Append("  speed           ").Append(RunsPerSecond.ToString("F0")).Append(" runs/s (").Append(ElapsedMilliseconds).Append(" ms)\n");
+                sb.Append("  goal ").Append(i).Append(" done     ").Append((GoalCompletionRate(i) * 100).ToString("F1", CultureInfo.InvariantCulture)).Append("%  avg ").Append((AverageGoalFraction(i) * 100).ToString("F0", CultureInfo.InvariantCulture)).Append("%\n");
+            sb.Append("  speed           ").Append(RunsPerSecond.ToString("F0", CultureInfo.InvariantCulture)).Append(" runs/s (").Append(ElapsedMilliseconds).Append(" ms)\n");
             return sb.ToString();
         }
     }

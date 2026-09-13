@@ -37,6 +37,11 @@ Measured effect (1000 games per level, same seeds, before → after):
 | 05 Hourglass | 93.9 → 72.9 | 1.12 → 0.75 |
 | 06 Cold Storage | 84.9 → 64.8 | 1.23 → 0.78 |
 
+These are the numbers **with the move budgets the levels had at the time**. The move-budget pass
+that followed (see the README curve) lowered them further — 04/05/06 now read 80.0 / 59.7 / 49.7
+in `docs/curve-1000.csv`. Both measurements are real; they are just before and after the budgets
+were tuned. Don't read the two tables as a contradiction.
+
 A third of the "skill" on the hard levels was clairvoyance. Any difficulty number produced by a
 bot that can see the RNG is inflated in exactly the levels where accuracy matters most — the
 hard ones. This is now a test (`CloneWithUnknownFuture_keeps_the_board_but_not_the_spawn_stream`).

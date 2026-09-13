@@ -7,7 +7,8 @@ you can read in a diff, and a bot simulator that tells a level designer how hard
 in seconds, before a human ever plays it.
 
 > Status: core, simulator, CLI, Unity presentation, Level Editor and Difficulty Curve windows
-> are done (39 core tests + 2 play-mode tests); the WebGL build runs (8 MB). itch.io page and
+> are done (39 core tests + 2 play-mode tests); the WebGL build runs (8.95 MB, gzip-compressed,
+> measured). itch.io page and
 > a recorded GIF are next — see [Roadmap](#roadmap).
 
 <p align="center">
@@ -76,7 +77,7 @@ unity/                                    Unity 6 project — playable board, Le
 - **Level Editor window** (`Match3 Lab → Level Editor`): paint cells and layers, edit goals,
   live validation, start-board preview by seed, simulate in place against a target win-rate
   band, and **Auto-tune moves** — the tuner binary-searches the move budget that lands the
-  level in the band, in under two seconds.
+  level in the band, in a couple of seconds.
 - **Difficulty Curve window** (`Match3 Lab → Difficulty Curve`): the whole `levels/` folder as
   a bar chart with the band shaded, a table, CSV export and click-through to the editor.
 - **Play-mode smoke tests** load the generated demo scene and let the bot play it, headless:
@@ -162,6 +163,22 @@ Needs the .NET 10 SDK. The Unity side needs Unity 6000.3 with the WebGL module.
    budget by the bots). Next: propose layout mutations and keep only those that land in the band.
 5. **A better "competent player"** — a bot with one ply of look-ahead for combos, and weights
    fitted to real play sessions once the demo has collected some.
+
+## Known issues
+
+Found by reading the code against [decision 0002](docs/decisions/0002-resolution-rules.md);
+each one is a rule bug, not a crash, and each changes measured difficulty, so they are fixed
+together with a re-measured curve rather than one at a time.
+
+- A cell that has **ice over it and grass under it** never loses its grass layer: the ice branch
+  returns before the grass is cleared. ADR 0002 says a blast crossing the cell should take a layer.
+- Because a piece under ice is not removed in the same phase, an ice-covered match group can be
+  seen twice and damage an adjacent box twice — ADR 0002 says once per match group.
+- `MoveResult.Cascades` counts one too many on tap moves and special combinations, so the
+  cascades-per-move column in the curve reads slightly high.
+- `MoveBudgetTuner` assumes win rate is monotone in the move budget. It is very nearly so, but
+  the bot re-plans when the budget changes, so a binary search can land one move off the edge
+  of the band.
 
 ## License
 

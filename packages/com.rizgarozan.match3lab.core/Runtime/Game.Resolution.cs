@@ -73,6 +73,7 @@ namespace Match3Lab.Core
             result.Events.AddRange(_events);
             result.Cascades = _cascade;
             result.ScoreGained = _scoreGained;
+            Score += _scoreGained;
             result.StatusAfter = Status;
             return result;
         }
