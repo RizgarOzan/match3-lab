@@ -262,6 +262,10 @@ namespace Match3Lab.Core
                 c.Ice--;
                 Progress(GoalKind.Ice, 0);
                 Emit(BoardEventKind.ObstacleHit, p, default, c.Piece, ObstacleLayer.Ice);
+                // ADR 0002: grass under the cell loses a layer when a blast crosses it, even
+                // though the ice shields the piece itself. A match hit is not a blast, so it
+                // only peels the ice and the grass stays.
+                if (source == HitSource.Blast) ClearGrass(ref c, p);
                 return;
             }
             if (c.Piece.IsSpecial)

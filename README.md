@@ -167,11 +167,12 @@ Needs the .NET 10 SDK. The Unity side needs Unity 6000.3 with the WebGL module.
 ## Known issues
 
 Found by reading the code against [decision 0002](docs/decisions/0002-resolution-rules.md);
-each one is a rule bug, not a crash, and each changes measured difficulty, so they are fixed
-together with a re-measured curve rather than one at a time.
+each one is a rule bug, not a crash. The remaining ones change measured difficulty, so they are
+fixed together with a re-measured curve rather than one at a time.
 
-- A cell that has **ice over it and grass under it** never loses its grass layer: the ice branch
-  returns before the grass is cleared. ADR 0002 says a blast crossing the cell should take a layer.
+- ~~A cell that has ice over it and grass under it never loses its grass layer.~~ Fixed: a blast
+  crossing the cell now peels a grass layer too, per ADR 0002. The shipped curve is unchanged
+  because no shipped level puts grass under ice.
 - Because a piece under ice is not removed in the same phase, an ice-covered match group can be
   seen twice and damage an adjacent box twice — ADR 0002 says once per match group.
 - `MoveResult.Cascades` counts one too many on tap moves and special combinations, so the

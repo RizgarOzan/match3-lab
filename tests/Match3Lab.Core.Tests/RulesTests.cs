@@ -137,6 +137,51 @@ namespace Match3Lab.Core.Tests
         }
 
         [Fact]
+        public void A_blast_crossing_an_iced_grass_cell_peels_both_ice_and_grass_but_the_piece_survives()
+        {
+            // Row 1 becomes 0 0 0 0 after the swap -> a rocket lands at the dropped cell (2,1).
+            // (2,3) is grass-2 over ice-2 over colour 0 and is frozen floor, so it stays put.
+            var game = Start(@"
+                2 3 0   3
+                0 0 1   0
+                3 1 3   1
+                1 2 0GI 2",
+                goals: "goal ice 2\ngoal grass 2");
+            game.Play(Move.Swap(2, 0, 2, 1));
+            Assert.Equal(PieceType.RocketV, game.Board[2, 1].Piece.Type);
+
+            var tap = game.Play(Move.Tap(2, 1));
+
+            // ADR 0002: the blast crosses (2,3); ice shields the piece but the grass under it still loses a layer.
+            Assert.Contains(tap.Events, e => e.Kind == BoardEventKind.ObstacleHit && e.Layer == ObstacleLayer.Ice && e.Pos == new GridPos(2, 3) && e.Phase == 0);
+            Assert.Contains(tap.Events, e => e.Kind == BoardEventKind.ObstacleHit && e.Layer == ObstacleLayer.Grass && e.Pos == new GridPos(2, 3) && e.Phase == 0);
+            Assert.Equal(1, game.Board[2, 3].Ice);
+            Assert.Equal(1, game.Board[2, 3].Grass);
+            Assert.Equal(Piece.Normal(0), game.Board[2, 3].Piece);
+        }
+
+        [Fact]
+        public void A_match_on_an_iced_grass_cell_peels_the_ice_only_and_leaves_the_grass()
+        {
+            // The iced piece cannot be swapped; instead a plain 0 slides into (1,1) so column 1
+            // becomes 0 0gi 0 down rows 1-3 -- a vertical match whose middle cell is iced+grassed.
+            var game = Start(@"
+                2 3   1 3
+                0 3   2 1
+                1 0gi 2 0
+                3 0   1 2",
+                goals: "goal color 0 99");
+
+            var result = game.Play(Move.Swap(0, 1, 1, 1));
+
+            // A match is not a blast: the ice absorbs the hit and the piece stays, so the grass under
+            // it keeps its layer (no Grass hit in the resolving phase). Only the blast case peels grass.
+            Assert.Contains(result.Events, e => e.Kind == BoardEventKind.ObstacleHit && e.Layer == ObstacleLayer.Ice && e.Pos == new GridPos(1, 2) && e.Phase == 0);
+            Assert.DoesNotContain(result.Events, e => e.Kind == BoardEventKind.ObstacleHit && e.Layer == ObstacleLayer.Grass && e.Pos == new GridPos(1, 2) && e.Phase == 0);
+            Assert.Equal(0, game.Board[1, 2].Ice);
+        }
+
+        [Fact]
         public void Running_out_of_moves_loses()
         {
             var game = Start(@"
