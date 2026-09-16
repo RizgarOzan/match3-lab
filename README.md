@@ -61,7 +61,7 @@ packages/com.rizgarozan.match3lab.core/   rules core — pure C#, no UnityEngine
   Runtime/                                board, matching, specials, gravity, goals, level text format
   Runtime/Simulation/                     bots and the parallel simulator
 src/Match3Lab.Core/                       .NET project that compiles the same files for tests and tools
-tests/Match3Lab.Core.Tests/               xUnit — 39 tests pin the rules, determinism, the simulator and the tuner
+tests/Match3Lab.Core.Tests/               xUnit — 45 tests pin the rules, determinism, the simulator, the tuner and the evolver
 tools/Match3Lab.Cli/                      m3lab: validate · show · sim · curve · tune
 levels/                                   six hand-authored levels, easy to hard
 docs/decisions/                           why things are the way they are (ADRs)
@@ -159,8 +159,12 @@ Needs the .NET 10 SDK. The Unity side needs Unity 6000.3 with the WebGL module.
 1. ~~Unity presentation~~ — done; **WebGL build on itch.io** in progress.
 2. ~~Level editor window~~ — done.
 3. ~~Difficulty curve window~~ — done.
-4. **Level suggestion loop** — the move-budget tuner is the first step (layout by the designer,
-   budget by the bots). Next: propose layout mutations and keep only those that land in the band.
+4. **Level suggestion loop** — two passes now land a level in a target band: `m3lab tune`
+   binary-searches the move budget, and `LevelEvolver` hill-climbs the layout itself — obstacle
+   layers, goal sizes, colour count, board shape
+   ([decision 0005](docs/decisions/0005-layout-evolver.md)). The evolver is core-only so far;
+   next is exposing it behind a confirmation step, since unlike a budget change it rewrites the
+   designer's grid.
 5. **A better "competent player"** — a bot with one ply of look-ahead for combos, and weights
    fitted to real play sessions once the demo has collected some.
 
