@@ -2,6 +2,7 @@
 name 05 Hourglass
 size 7 9
 moves 18
+band 50 70
 colors 5
 goal color 2 24
 goal grass 6

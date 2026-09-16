@@ -7,7 +7,7 @@ you can read in a diff, and a bot simulator that tells a level designer how hard
 in seconds, before a human ever plays it.
 
 > Status: core, simulator, CLI, Unity presentation, Level Editor and Difficulty Curve windows
-> are done (39 core tests + 2 play-mode tests); the WebGL build runs (8.95 MB, gzip-compressed,
+> are done (49 core tests + 2 play-mode tests); the WebGL build runs (8.95 MB, gzip-compressed,
 > measured). itch.io page and
 > a recorded GIF are next — see [Roadmap](#roadmap).
 
@@ -61,8 +61,8 @@ packages/com.rizgarozan.match3lab.core/   rules core — pure C#, no UnityEngine
   Runtime/                                board, matching, specials, gravity, goals, level text format
   Runtime/Simulation/                     bots and the parallel simulator
 src/Match3Lab.Core/                       .NET project that compiles the same files for tests and tools
-tests/Match3Lab.Core.Tests/               xUnit — 45 tests pin the rules, determinism, the simulator, the tuner and the evolver
-tools/Match3Lab.Cli/                      m3lab: validate · show · sim · curve · tune
+tests/Match3Lab.Core.Tests/               xUnit — 49 tests pin the rules, determinism, the simulator, the tuner and the evolver
+tools/Match3Lab.Cli/                      m3lab: validate · show · sim · curve · check · tune
 levels/                                   six hand-authored levels, easy to hard
 docs/decisions/                           why things are the way they are (ADRs)
 unity/                                    Unity 6 project — playable board, Level Editor, Difficulty Curve, play-mode tests
@@ -105,6 +105,7 @@ unity/                                    Unity 6 project — playable board, Le
 name 05 Hourglass
 size 7 9
 moves 18
+band 50 70
 colors 5
 goal color 2 24
 goal grass 6
@@ -121,7 +122,8 @@ grid
 ```
 
 `.` random piece · `0-5` fixed colour · `#` hole · `b`/`B` box with 1/2 hit points ·
-`g`/`G` grass under · `i`/`I` ice over. It round-trips through the parser and the writer, and
+`g`/`G` grass under · `i`/`I` ice over. `band 50 70` is the greedy win rate (percent) the
+level is meant to have; `m3lab check` and CI fail a level that plays outside it. It round-trips through the parser and the writer, and
 the validator explains exactly what is wrong when something is.
 
 ## Try it
@@ -132,6 +134,7 @@ dotnet run --project tools/Match3Lab.Cli -- validate levels
 dotnet run --project tools/Match3Lab.Cli -- show levels/05-hourglass.txt --seed 7
 dotnet run --project tools/Match3Lab.Cli -- sim levels/06-cold-storage.txt --runs 2000
 dotnet run --project tools/Match3Lab.Cli -- curve levels --runs 1000 --csv curve.csv
+dotnet run --project tools/Match3Lab.Cli -- check levels
 dotnet run --project tools/Match3Lab.Cli -- tune levels/01-first-steps.txt --band 0.55:0.80
 ```
 
@@ -184,6 +187,12 @@ fixed together with a re-measured curve rather than one at a time.
 - `MoveBudgetTuner` assumes win rate is monotone in the move budget. It is very nearly so, but
   the bot re-plans when the budget changes, so a binary search can land one move off the edge
   of the band.
+
+## Contributing
+
+The easiest way in is a new level: one text file, and CI plays it 1000 times to prove it is as hard
+as its `band` line says. Bots and rule fixes are welcome too. See [CONTRIBUTING.md](CONTRIBUTING.md)
+and the [`good first issue`](https://github.com/RizgarOzan/match3-lab/labels/good%20first%20issue) list.
 
 ## License
 

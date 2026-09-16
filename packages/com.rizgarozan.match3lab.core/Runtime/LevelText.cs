@@ -14,6 +14,7 @@ namespace Match3Lab.Core
     /// name Tutorial 1
     /// size 7 8          # width height
     /// moves 20
+    /// band 60 80        # optional: intended greedy win rate, percent
     /// colors 5
     /// goal color 0 15   # kind [color] target
     /// goal grass 10
@@ -67,6 +68,11 @@ namespace Match3Lab.Core
                         if (parts.Length != 2) throw new LevelFormatException("moves needs one number", lineNo);
                         level.Moves = ParseInt(parts[1], lineNo, "moves");
                         break;
+                    case "band":
+                        if (parts.Length != 3) throw new LevelFormatException("band needs two percentages: band <low> <high>", lineNo);
+                        level.BandLow = ParseInt(parts[1], lineNo, "band low");
+                        level.BandHigh = ParseInt(parts[2], lineNo, "band high");
+                        break;
                     case "colors":
                         if (parts.Length != 2) throw new LevelFormatException("colors needs one number", lineNo);
                         level.ColorCount = ParseInt(parts[1], lineNo, "colors");
@@ -107,6 +113,7 @@ namespace Match3Lab.Core
             if (!string.IsNullOrEmpty(level.Name)) sb.Append("name ").Append(level.Name).Append('\n');
             sb.Append("size ").Append(level.Width).Append(' ').Append(level.Height).Append('\n');
             sb.Append("moves ").Append(level.Moves).Append('\n');
+            if (level.HasBand) sb.Append("band ").Append(level.BandLow).Append(' ').Append(level.BandHigh).Append('\n');
             sb.Append("colors ").Append(level.ColorCount).Append('\n');
             foreach (var g in level.Goals)
             {

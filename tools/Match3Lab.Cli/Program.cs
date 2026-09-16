@@ -20,6 +20,7 @@ namespace Match3Lab.Cli
   m3lab validate <level.txt|dir>            check levels and print problems
   m3lab sim <level.txt> [options]           play one level many times
   m3lab curve <dir> [options] [--csv f]     simulate every level in a folder, print the difficulty table
+  m3lab check <level.txt|dir> [--runs N]    fail unless every level's greedy win rate is inside its declared band
   m3lab show <level.txt> [--seed N]         print the starting board for a seed
   m3lab tune <level.txt> [--band L:H] [--write]
                                             find the move budget that puts the greedy win rate in the band
@@ -45,6 +46,7 @@ options
                     case "validate": return Validate(args.ElementAtOrDefault(1));
                     case "sim": return Sim(args.ElementAtOrDefault(1), opts);
                     case "curve": return Curve(args.ElementAtOrDefault(1), opts);
+                    case "check": return Check(args.ElementAtOrDefault(1), opts);
                     case "show": return Show(args.ElementAtOrDefault(1), opts);
                     case "tune": return Tune(args.ElementAtOrDefault(1), opts);
                     default: Console.Write(Usage); return 1;
@@ -194,6 +196,30 @@ options
                 Console.WriteLine("wrote " + o.Csv);
             }
             return 0;
+        }
+
+        private static int Check(string path, Options o)
+        {
+            // Fixed seeds make the verdict reproducible: same level and same rules give the same result in CI and locally.
+            int bad = 0;
+            foreach (var file in LevelFiles(path))
+            {
+                string label = Path.GetFileName(file);
+                var level = LevelText.Parse(File.ReadAllText(file));
+                if (!level.HasBand)
+                {
+                    bad++;
+                    Console.WriteLine("FAIL  " + label + "  no 'band <low> <high>' line — declare the greedy win rate the level is meant to have");
+                    continue;
+                }
+                var r = Simulator.Run(level, () => new GreedyBot(), new SimulationOptions { Runs = o.Runs, FirstSeed = o.Seed, MaxDegreeOfParallelism = o.Threads });
+                double win = r.WinRate * 100;
+                bool inBand = win >= level.BandLow && win <= level.BandHigh;
+                if (!inBand) bad++;
+                Console.WriteLine((inBand ? "ok    " : "FAIL  ") + label + "  greedy " + F(win, 1) + "% over " + r.Runs + " runs, band " + level.BandLow + "-" + level.BandHigh + "%"
+                                  + (inBand ? "" : win < level.BandLow ? " — too hard: add moves or remove obstacles" : " — too easy: cut moves or add obstacles"));
+            }
+            return bad == 0 ? 0 : 3;
         }
 
         private static int Tune(string path, Options o)

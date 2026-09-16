@@ -2,6 +2,7 @@
 name 04 Thin Ice
 size 7 8
 moves 20
+band 70 90
 colors 5
 goal ice 16
 goal color 1 15

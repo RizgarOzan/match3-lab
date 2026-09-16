@@ -19,3 +19,5 @@ jobs:
         run: dotnet run --project tools/Match3Lab.Cli -- validate levels
       - name: Smoke-run the simulator
         run: dotnet run --project tools/Match3Lab.Cli -- curve levels --runs 100
+      - name: Every level plays inside its declared difficulty band
+        run: dotnet run --project tools/Match3Lab.Cli -- check levels --runs 1000

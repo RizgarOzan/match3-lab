@@ -1,4 +1,5 @@
 using Match3Lab.Core;
+using Match3Lab.Core.Simulation;
 using Xunit;
 
 namespace Match3Lab.Core.Tests
@@ -66,6 +67,22 @@ grid
             Assert.Equal(written, LevelText.Write(again));
         }
 
+        [Fact]
+        public void Band_is_optional_and_round_trips()
+        {
+            Assert.False(LevelText.Parse(Sample).HasBand);
+
+            var level = LevelText.Parse(Sample.Replace("moves 12", "moves 12\nband 40 60"));
+            Assert.True(level.HasBand);
+            Assert.Equal(40, level.BandLow);
+            Assert.Equal(60, level.BandHigh);
+
+            var again = LevelText.Parse(LevelText.Write(level));
+            Assert.Equal(40, again.BandLow);
+            Assert.Equal(60, again.BandHigh);
+            Assert.Equal(60, LevelEvolver.Copy(level).BandHigh);
+        }
+
         [Theory]
         [InlineData("size 3 3\nmoves 5\ncolors 3\ngoal grass 1\ngrid\n. . .\n. . .\n", "rows")]
         [InlineData("size 3 3\nmoves 5\ncolors 3\ngoal color 0 1\ngrid\n. . .\n. .\n. . .\n", "row 2")]
@@ -76,6 +93,9 @@ grid
         [InlineData("size 3 3\nmoves 0\ncolors 3\ngoal color 0 1\ngrid\n. . .\n. . .\n. . .\n", "moves")]
         [InlineData("moves 5\ncolors 3\ngoal color 0 1\ngrid\n. . .\n", "size")]
         [InlineData("size 3 3\nmoves 5\ncolors 3\ngoal color 0 1\nspeed 4\ngrid\n. . .\n. . .\n. . .\n", "unknown key")]
+        [InlineData("size 3 3\nmoves 5\nband 50\ncolors 3\ngoal color 0 1\ngrid\n. . .\n. . .\n. . .\n", "band needs two")]
+        [InlineData("size 3 3\nmoves 5\nband 70 40\ncolors 3\ngoal color 0 1\ngrid\n. . .\n. . .\n. . .\n", "band")]
+        [InlineData("size 3 3\nmoves 5\nband 50 120\ncolors 3\ngoal color 0 1\ngrid\n. . .\n. . .\n. . .\n", "band")]
         public void Rejects_malformed_levels_with_a_reason(string text, string expectedFragment)
         {
             var ex = Assert.Throws<LevelFormatException>(() => LevelText.Parse(text));
