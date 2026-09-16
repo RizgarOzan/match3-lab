@@ -7,9 +7,13 @@ you can read in a diff, and a bot simulator that tells a level designer how hard
 in seconds, before a human ever plays it.
 
 > Status: core, simulator, CLI, Unity presentation, Level Editor and Difficulty Curve windows
-> are done (49 core tests + 2 play-mode tests); the WebGL build runs (8.95 MB, gzip-compressed,
-> measured). itch.io page and
-> a recorded GIF are next — see [Roadmap](#roadmap).
+> are done (50 core tests + 2 play-mode tests); the WebGL build runs (8.95 MB, gzip-compressed,
+> measured). The itch.io page is next — see [Roadmap](#roadmap).
+
+<p align="center">
+  <img src="docs/media/bot-plays-level-2.gif" width="300" alt="The greedy bot plays level 2, Mow the Lawn: two moves set off long cascades, a rocket appears and the grass goal drops from 21 to 6">
+</p>
+<p align="center"><sub>The greedy bot playing level 2 in the WebGL build, 2.4× speed.</sub></p>
 
 <p align="center">
   <img src="docs/media/level-02-midgame.png" width="30%" alt="Level 2 mid-game: a vertical and a horizontal rocket on the board, pieces falling">
@@ -54,6 +58,18 @@ moves with knowledge of which pieces would fall next. With that fixed
 up to 20 points, and one pass of move-budget changes produced the curve above. Each iteration
 took about five seconds.
 
+## Why not …
+
+- **… playtest with people?** Do that too — people decide whether a level is fun. They cannot
+  play a level 1000 times after every tweak; the greedy bot can, in under a second on a laptop, so the
+  playtest starts from a level that is already in its difficulty band.
+- **… a match-3 template from the Asset Store?** A template gives you a game. Here the rules
+  run without Unity, so the same code is played by bots in CI and on the command line.
+- **… train a machine-learning agent?** It needs training per rule set and is not reproducible
+  run to run. A greedy bot with a fixed seed gives the same number every time, which is what a
+  CI check needs. The numbers are *relative* difficulty; they are not a prediction of human win
+  rates (see [Roadmap](#roadmap) item 5).
+
 ## What is in the box
 
 ```
@@ -61,7 +77,7 @@ packages/com.rizgarozan.match3lab.core/   rules core — pure C#, no UnityEngine
   Runtime/                                board, matching, specials, gravity, goals, level text format
   Runtime/Simulation/                     bots and the parallel simulator
 src/Match3Lab.Core/                       .NET project that compiles the same files for tests and tools
-tests/Match3Lab.Core.Tests/               xUnit — 49 tests pin the rules, determinism, the simulator, the tuner and the evolver
+tests/Match3Lab.Core.Tests/               xUnit — 50 tests pin the rules, determinism, the simulator, the tuner and the evolver
 tools/Match3Lab.Cli/                      m3lab: validate · show · sim · curve · check · tune
 levels/                                   six hand-authored levels, easy to hard
 docs/decisions/                           why things are the way they are (ADRs)
@@ -182,8 +198,6 @@ fixed together with a re-measured curve rather than one at a time.
   because no shipped level puts grass under ice.
 - Because a piece under ice is not removed in the same phase, an ice-covered match group can be
   seen twice and damage an adjacent box twice — ADR 0002 says once per match group.
-- `MoveResult.Cascades` counts one too many on tap moves and special combinations, so the
-  cascades-per-move column in the curve reads slightly high.
 - `MoveBudgetTuner` assumes win rate is monotone in the move budget. It is very nearly so, but
   the bot re-plans when the budget changes, so a binary search can land one move off the edge
   of the band.

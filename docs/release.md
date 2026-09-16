@@ -55,6 +55,11 @@ fetch('http://localhost:8766/save?name=level-05.png', { method: 'POST', body: do
 
 `?auto=1&level=4` in the page URL opens level 5 with the bot on; the "Bot: on" button turns it off again.
 
+The same sink makes GIFs without touching the desktop: post `frame_000.png`, `frame_001.png`, …
+in a loop (`docs/media/bot-plays-level-2.gif` is 120 frames, one every ~240 ms, from a 480×800
+viewport), then `bash tools/capture/make-gif.sh <frames> docs/media/bot-plays-level-2.gif 10 360`.
+The bot waits for each cascade to finish, so sample sparsely and play the frames back faster.
+
 ## Checklist before tagging
 
 - `dotnet test tests/Match3Lab.Core.Tests` green
