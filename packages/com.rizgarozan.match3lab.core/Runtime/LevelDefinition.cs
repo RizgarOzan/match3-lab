@@ -62,6 +62,12 @@ namespace Match3Lab.Core
         public int ColorCount = 5;
         public List<Goal> Goals = new List<Goal>();
 
+        /// <summary>Intended greedy-bot win rate in percent, <c>band 40 60</c> in the text format.
+        /// Both zero means the level declares no band. <c>m3lab check</c> and CI hold a level to it.</summary>
+        public int BandLow;
+        public int BandHigh;
+        public bool HasBand => BandLow != 0 || BandHigh != 0;
+
         /// <summary>Row-major, top row first; length must be Width * Height.</summary>
         public CellSpec[] Cells = Array.Empty<CellSpec>();
 
@@ -77,6 +83,8 @@ namespace Match3Lab.Core
                 Height = Height,
                 Moves = moves,
                 ColorCount = ColorCount,
+                BandLow = BandLow,
+                BandHigh = BandHigh,
                 Goals = Goals,
                 Cells = Cells,
             };
@@ -91,6 +99,8 @@ namespace Match3Lab.Core
             if (Moves <= 0) errors.Add("moves must be positive, got " + Moves);
             if (ColorCount < MinColors || ColorCount > MaxColors)
                 errors.Add("colors must be " + MinColors + ".." + MaxColors + ", got " + ColorCount);
+            if (HasBand && (BandLow < 0 || BandHigh > 100 || BandLow >= BandHigh))
+                errors.Add("band must be two percentages with low < high, got " + BandLow + " " + BandHigh);
             if (Goals.Count == 0) errors.Add("at least one goal is required");
             if (Width > 0 && Height > 0 && Cells.Length != Width * Height)
                 errors.Add("cells length " + Cells.Length + " does not match " + Width + "x" + Height);

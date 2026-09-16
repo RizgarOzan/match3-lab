@@ -2,6 +2,7 @@
 name 06 Cold Storage
 size 8 8
 moves 17
+band 40 60
 colors 5
 goal ice 12
 goal box 6

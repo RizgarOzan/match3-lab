@@ -271,6 +271,8 @@ namespace Match3Lab.Core.Simulation
                 Height = level.Height,
                 Moves = level.Moves,
                 ColorCount = level.ColorCount,
+                BandLow = level.BandLow,
+                BandHigh = level.BandHigh,
                 Goals = new List<Goal>(level.Goals),
                 Cells = (CellSpec[])level.Cells.Clone(),
             };

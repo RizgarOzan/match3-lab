@@ -2,6 +2,7 @@
 name 03 Crates
 size 7 8
 moves 15
+band 80 95
 colors 5
 goal box 8
 grid
