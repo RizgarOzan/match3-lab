@@ -2,13 +2,15 @@
 
 [![tests](https://github.com/RizgarOzan/match3-lab/actions/workflows/tests.yml/badge.svg)](https://github.com/RizgarOzan/match3-lab/actions/workflows/tests.yml)
 
+**[▶ Play in browser](https://rizgarozan.github.io/match3-lab/)** — the WebGL build, 8.95 MB, no install.
+
 A match-3 **workbench**, not a match-3 game. An engine-independent rules core, a level format
 you can read in a diff, and a bot simulator that tells a level designer how hard a level is —
 in seconds, before a human ever plays it.
 
 > Status: core, simulator, CLI, Unity presentation, Level Editor and Difficulty Curve windows
 > are done (50 core tests + 2 play-mode tests); the WebGL build runs (8.95 MB, gzip-compressed,
-> measured). The itch.io page is next — see [Roadmap](#roadmap).
+> measured) and is [live on GitHub Pages](https://rizgarozan.github.io/match3-lab/). The itch.io page is next — see [Roadmap](#roadmap).
 
 <p align="center">
   <img src="docs/media/bot-plays-level-2.gif" width="300" alt="The greedy bot plays level 2, Mow the Lawn: two moves set off long cascades, a rocket appears and the grass goal drops from 21 to 6">
@@ -175,7 +177,7 @@ Needs the .NET 10 SDK. The Unity side needs Unity 6000.3 with the WebGL module.
 
 ## Roadmap
 
-1. ~~Unity presentation~~ — done; **WebGL build on itch.io** in progress.
+1. ~~Unity presentation~~ — done; WebGL build [on GitHub Pages](https://rizgarozan.github.io/match3-lab/); **itch.io page** in progress.
 2. ~~Level editor window~~ — done.
 3. ~~Difficulty curve window~~ — done.
 4. **Level suggestion loop** — two passes now land a level in a target band: `m3lab tune`
