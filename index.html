@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes">
+    <title>Match3 Lab</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #0f1218; overflow: hidden; }
+      #unity-canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; background: #0f1218; }
+      #loading { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); color: #9aa5b1;
+                 font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; text-align: center; letter-spacing: .02em; }
+      #loading b { color: #e6ecf1; font-weight: 600; }
+      #bar { width: 220px; height: 6px; background: #262c36; margin: 12px auto 0; border-radius: 3px; overflow: hidden; }
+      #fill { height: 100%; width: 0; background: #4fb8c4; transition: width .15s linear; }
+      #warn { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); color: #e0964a; font: 13px system-ui, sans-serif; }
+    </style>
+  </head>
+  <body>
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+    <div id="loading"><b>Match3 Lab</b><div>loading</div><div id="bar"><div id="fill"></div></div></div>
+    <div id="warn"></div>
+    <script src="Build/WebGL.loader.js"></script>
+    <script>
+      var canvas = document.querySelector("#unity-canvas");
+      var config = {
+        arguments: [],
+        dataUrl: "Build/WebGL.data.unityweb",
+        frameworkUrl: "Build/WebGL.framework.js.unityweb",
+        codeUrl: "Build/WebGL.wasm.unityweb",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "Rızgar Ozan",
+        productName: "Match3 Lab",
+        productVersion: "1.0",
+        // A 2D board does not need a 3x backing store on phones; cap it for battery and fill rate.
+        devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+        // Lets canvas.toDataURL() read the frame — used to grab README screenshots straight from the page.
+        webglContextAttributes: { preserveDrawingBuffer: true },
+        showBanner: function (msg, type) {
+          if (type === "error") document.querySelector("#warn").textContent = msg;
+        }
+      };
+
+      createUnityInstance(canvas, config, function (progress) {
+        document.querySelector("#fill").style.width = Math.round(progress * 100) + "%";
+      }).then(function (instance) {
+        window.unityInstance = instance;
+        document.querySelector("#loading").remove();
+      }).catch(function (message) {
+        document.querySelector("#loading").innerHTML = "<b>Could not start</b><div>" + message + "</div>";
+      });
+    </script>
+  </body>
+</html>
