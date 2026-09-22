@@ -147,6 +147,7 @@ the validator explains exactly what is wrong when something is.
 ## Try it
 
 ```
+git clone https://github.com/RizgarOzan/match3-lab.git && cd match3-lab
 dotnet test tests/Match3Lab.Core.Tests
 dotnet run --project tools/Match3Lab.Cli -- validate levels
 dotnet run --project tools/Match3Lab.Cli -- show levels/05-hourglass.txt --seed 7
