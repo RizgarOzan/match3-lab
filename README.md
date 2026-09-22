@@ -5,8 +5,9 @@
 **[▶ Play in browser](https://rizgarozan.github.io/match3-lab/)** — the WebGL build, 8.95 MB, no install.
 
 A match-3 **workbench**, not a match-3 game. An engine-independent rules core, a level format
-you can read in a diff, and a bot simulator that tells a level designer how hard a level is —
-in seconds, before a human ever plays it.
+you can read in a diff, and a bot simulator that ranks levels by how hard they are for a bot —
+in seconds, before a human plays them. The numbers order levels against each other; they are not
+a prediction of human win rates.
 
 > Status: core, simulator, CLI, Unity presentation, Level Editor and Difficulty Curve windows
 > are done (50 core tests + 2 play-mode tests); the WebGL build runs (8.95 MB, gzip-compressed,
@@ -27,7 +28,7 @@ in seconds, before a human ever plays it.
 ## The question it answers
 
 Casual studios tune every level by having bots play it thousands of times. That tooling is
-in-house everywhere and open-source nowhere. This is the open one:
+almost always in-house. This is an open one:
 
 ```
 $ dotnet run --project tools/Match3Lab.Cli -- curve levels --runs 1000
@@ -105,8 +106,8 @@ unity/                                    Unity 6 project — playable board, Le
 
 ### The rules core
 
-- **Deterministic by construction.** Same level + same seed = same game, on Mono, IL2CPP and
-  .NET. Randomness is an in-repo PCG32 verified against the reference outputs; `System.Random`
+- **Deterministic by construction.** Same level + same seed = same game. CI checks this on
+  .NET; the Unity build runs the same source on Mono and IL2CPP, but no test compares runtimes yet. Randomness is an in-repo PCG32 verified against the reference outputs; `System.Random`
   is never used. ([decision 0001](docs/decisions/0001-pure-core-and-determinism.md))
 - **Events, not callbacks.** `Game.Play(move)` returns the full list of what happened — swaps,
   clears, obstacle hits, specials created and fired, falls, spawns — grouped by phase. The
