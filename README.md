@@ -148,6 +148,7 @@ the validator explains exactly what is wrong when something is.
 ## Try it
 
 ```
+git clone https://github.com/RizgarOzan/match3-lab.git && cd match3-lab
 dotnet test tests/Match3Lab.Core.Tests
 dotnet run --project tools/Match3Lab.Cli -- validate levels
 dotnet run --project tools/Match3Lab.Cli -- show levels/05-hourglass.txt --seed 7
@@ -199,8 +200,10 @@ fixed together with a re-measured curve rather than one at a time.
 - ~~A cell that has ice over it and grass under it never loses its grass layer.~~ Fixed: a blast
   crossing the cell now peels a grass layer too, per ADR 0002. The shipped curve is unchanged
   because no shipped level puts grass under ice.
-- Because a piece under ice is not removed in the same phase, an ice-covered match group can be
-  seen twice and damage an adjacent box twice — ADR 0002 says once per match group.
+- ~~Because a piece under ice is not removed in the same phase, an ice-covered match group can be
+  seen twice and damage an adjacent box twice.~~ Fixed: box damage from a match is keyed on its
+  source cell for the whole move, so a persisting iced group costs the box a single hit point, per
+  ADR 0002. The shipped curve is unchanged because no shipped level puts a box next to ice.
 - `MoveBudgetTuner` assumes win rate is monotone in the move budget. It is very nearly so, but
   the bot re-plans when the budget changes, so a binary search can land one move off the edge
   of the band.

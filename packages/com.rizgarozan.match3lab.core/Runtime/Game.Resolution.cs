@@ -16,6 +16,7 @@ namespace Match3Lab.Core
         private readonly HashSet<GridPos> _queued = new HashSet<GridPos>();
         private readonly HashSet<GridPos> _createdThisPhase = new HashSet<GridPos>();
         private readonly HashSet<GridPos> _boxesHitByGroup = new HashSet<GridPos>();
+        private readonly HashSet<(GridPos Box, GridPos Src)> _boxMatchDamageThisMove = new HashSet<(GridPos, GridPos)>();
         private readonly List<GridPos> _blast = new List<GridPos>();
         private int _phase;
         private int _cascade;
@@ -34,6 +35,7 @@ namespace Match3Lab.Core
             _activations.Clear();
             _queued.Clear();
             _createdThisPhase.Clear();
+            _boxMatchDamageThisMove.Clear();
             _phase = 0;
             _cascade = 0;
             _scoreGained = 0;
@@ -199,12 +201,24 @@ namespace Match3Lab.Core
                 for (int i = 0; i < group.Cells.Count; i++)
                 {
                     var p = group.Cells[i];
-                    HitCell(p, HitSource.Match);
+                    // ADR 0002: once per match group. An iced match cell is not removed, so the same
+                    // line is re-found on the next cascade and would hit the box again. Key the damage
+                    // on (box, source cell) so a source that stays put only costs the box one hit; the
+                    // key is released below the moment the source clears, so a fresh piece that falls
+                    // in and re-matches next to the box is a real, separate hit.
                     for (int d = 0; d < GridPos.CardinalOffsets.Length; d++)
                     {
                         var n = p.Offset(GridPos.CardinalOffsets[d].X, GridPos.CardinalOffsets[d].Y);
-                        if (Board.InBounds(n) && Board[n].Box > 0 && _boxesHitByGroup.Add(n)) DamageBox(n);
+                        if (Board.InBounds(n) && Board[n].Box > 0 && _boxesHitByGroup.Add(n)
+                            && _boxMatchDamageThisMove.Add((n, p))) DamageBox(n);
                     }
+                    HitCell(p, HitSource.Match);
+                    if (Board[p].Piece.IsEmpty)
+                        for (int d = 0; d < GridPos.CardinalOffsets.Length; d++)
+                        {
+                            var n = p.Offset(GridPos.CardinalOffsets[d].X, GridPos.CardinalOffsets[d].Y);
+                            if (Board.InBounds(n) && Board[n].Box > 0) _boxMatchDamageThisMove.Remove((n, p));
+                        }
                 }
 
                 if (special == PieceType.Empty) continue;
