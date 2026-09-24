@@ -182,6 +182,25 @@ namespace Match3Lab.Core.Tests
         }
 
         [Fact]
+        public void An_iced_match_group_next_to_a_box_only_costs_it_one_hit_point()
+        {
+            // A pre-made iced line of three (colour 0, two ice layers) sits next to a two-hit box.
+            // A separate swap at row 1 makes a legal move. Because the iced pieces are not removed,
+            // the same line is re-found on the next cascade -- it must not damage the box twice.
+            var game = Start(@"
+                0I 0I 0I  B  1  2
+                2  1  2   3  0  3
+                3  2  1   0  3  0",
+                goals: "goal color 0 99");
+
+            var result = game.Play(Move.Swap(1, 1, 1, 2));
+
+            Assert.True(result.Legal);
+            Assert.Equal(1, result.Events.Count(e => e.Kind == BoardEventKind.ObstacleHit && e.Layer == ObstacleLayer.Box && e.Pos == new GridPos(3, 0)));
+            Assert.Equal(1, game.Board[3, 0].Box);
+        }
+
+        [Fact]
         public void Running_out_of_moves_loses()
         {
             var game = Start(@"
