@@ -7,8 +7,9 @@ namespace Match3Lab.Core.Simulation
 {
     /// <summary>
     /// Finds the move budget that lands a level inside a target win-rate band. Win rate is
-    /// monotone in the move budget (an extra move can never make a level harder), so a binary
-    /// search over the budget converges in a handful of simulations. This is the smallest useful
+    /// nearly monotone in the move budget, so a binary search over the budget converges in a
+    /// handful of simulations. Not exactly: the bot re-plans when the budget changes, so the
+    /// search can land one move off the edge of the band. This is the smallest useful
     /// version of "let the bots tune the level": the layout stays the designer's, only the dial
     /// they would otherwise turn by hand is turned for them.
     /// </summary>
