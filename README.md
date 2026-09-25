@@ -10,7 +10,7 @@ in seconds, before a human plays them. The numbers order levels against each oth
 a prediction of human win rates.
 
 > Status: core, simulator, CLI, Unity presentation, Level Editor and Difficulty Curve windows
-> are done (50 core tests + 2 play-mode tests); the WebGL build runs (8.95 MB, gzip-compressed,
+> are done (51 core tests + 2 play-mode tests); the WebGL build runs (8.95 MB, gzip-compressed,
 > measured) and is [live on GitHub Pages](https://rizgarozan.github.io/match3-lab/). The itch.io page is next — see [Roadmap](#roadmap).
 
 <p align="center">
@@ -24,6 +24,10 @@ a prediction of human win rates.
   <img src="docs/media/level-06-cold-storage.png" width="30%" alt="Level 6 Cold Storage: boxes, two-layer ice and grass at once">
 </p>
 <p align="center"><sub>Screenshots taken from the WebGL build with the bot playing (<code>?auto=1</code>). Every sprite is generated at start-up; the project ships no art.</sub></p>
+
+**Contents:** [The question it answers](#the-question-it-answers) · [Why not …](#why-not-) ·
+[What is in the box](#what-is-in-the-box) · [Try it](#try-it) · [Roadmap](#roadmap) ·
+[Known issues](#known-issues) · [Contributing](#contributing) · [License](#license)
 
 ## The question it answers
 
@@ -80,7 +84,7 @@ packages/com.rizgarozan.match3lab.core/   rules core — pure C#, no UnityEngine
   Runtime/                                board, matching, specials, gravity, goals, level text format
   Runtime/Simulation/                     bots and the parallel simulator
 src/Match3Lab.Core/                       .NET project that compiles the same files for tests and tools
-tests/Match3Lab.Core.Tests/               xUnit — 50 tests pin the rules, determinism, the simulator, the tuner and the evolver
+tests/Match3Lab.Core.Tests/               xUnit — 51 tests pin the rules, determinism, the simulator, the tuner and the evolver
 tools/Match3Lab.Cli/                      m3lab: validate · show · sim · curve · check · tune
 levels/                                   six hand-authored levels, easy to hard
 docs/decisions/                           why things are the way they are (ADRs)
