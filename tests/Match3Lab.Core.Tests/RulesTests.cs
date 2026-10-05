@@ -200,6 +200,141 @@ namespace Match3Lab.Core.Tests
             Assert.Equal(1, game.Board[3, 0].Box);
         }
 
+        /// <summary>A 7x7 board with no lines: colour (x + 2y) % 5, so neighbours differ across and down.</summary>
+        private static Game StartOpenBoard()
+        {
+            var rows = Enumerable.Range(0, 7).Select(y => string.Join(" ", Enumerable.Range(0, 7).Select(x => (x + 2 * y) % 5)));
+            return Start(string.Join("\n", rows), colors: 5);
+        }
+
+        private static GridPos[] ClearedInPhase0(MoveResult result) =>
+            result.Events.Where(e => e.Kind == BoardEventKind.Cleared && e.Phase == 0).Select(e => e.Pos).OrderBy(p => p.Y).ThenBy(p => p.X).ToArray();
+
+        private static GridPos[] Cells(Game game, System.Func<GridPos, bool> keep) =>
+            game.Board.Positions().Where(keep).OrderBy(p => p.Y).ThenBy(p => p.X).ToArray();
+
+        [Fact]
+        public void Bomb_plus_bomb_clears_a_five_by_five_around_the_dropped_cell()
+        {
+            var game = StartOpenBoard();
+            game.Board[3, 2].Piece = Piece.Special(PieceType.Bomb);
+            game.Board[3, 3].Piece = Piece.Special(PieceType.Bomb);
+
+            var result = game.Play(Move.Swap(3, 2, 3, 3));
+
+            Assert.True(result.Legal);
+            Assert.Equal(2, result.Events.Count(e => e.Kind == BoardEventKind.SpecialActivated));
+            var expected = Cells(game, p => System.Math.Abs(p.X - 3) <= 2 && System.Math.Abs(p.Y - 3) <= 2 && p != new GridPos(3, 2) && p != new GridPos(3, 3));
+            Assert.Equal(expected, ClearedInPhase0(result));
+        }
+
+        [Fact]
+        public void Rocket_plus_bomb_clears_three_rows_and_three_columns_around_the_dropped_cell()
+        {
+            var game = StartOpenBoard();
+            game.Board[3, 2].Piece = Piece.Special(PieceType.RocketH);
+            game.Board[3, 3].Piece = Piece.Special(PieceType.Bomb);
+
+            var result = game.Play(Move.Swap(3, 2, 3, 3));
+
+            Assert.True(result.Legal);
+            Assert.Equal(2, result.Events.Count(e => e.Kind == BoardEventKind.SpecialActivated));
+            var expected = Cells(game, p => (System.Math.Abs(p.X - 3) <= 1 || System.Math.Abs(p.Y - 3) <= 1) && p != new GridPos(3, 2) && p != new GridPos(3, 3));
+            Assert.Equal(expected, ClearedInPhase0(result));
+        }
+
+        [Fact]
+        public void Rainbow_plus_normal_clears_every_piece_of_that_colour()
+        {
+            var game = StartOpenBoard();
+            game.Board[3, 3].Piece = Piece.Special(PieceType.Rainbow);
+            byte color = game.Board[4, 3].Piece.Color;
+            // After the swap the normal piece sits where the rainbow was, and is cleared with its colour.
+            var expected = Cells(game, p => p == new GridPos(3, 3) || (p != new GridPos(4, 3) && game.Board[p].Piece == Piece.Normal(color)));
+
+            var result = game.Play(Move.Swap(3, 3, 4, 3));
+
+            Assert.True(result.Legal);
+            Assert.Equal(expected, ClearedInPhase0(result));
+        }
+
+        [Theory]
+        [InlineData(PieceType.Bomb)]
+        [InlineData(PieceType.RocketH)]
+        public void Rainbow_plus_special_turns_the_most_common_colour_into_that_special_and_fires_them_all(PieceType special)
+        {
+            var game = StartOpenBoard();
+            game.Board[3, 3].Piece = Piece.Special(PieceType.Rainbow);
+            game.Board[4, 3].Piece = Piece.Special(special);
+            byte target = game.MostCommonColor();
+            var targets = Cells(game, p => game.Board[p].Piece == Piece.Normal(target));
+
+            var result = game.Play(Move.Swap(3, 3, 4, 3));
+
+            Assert.True(result.Legal);
+            var created = result.Events.Where(e => e.Kind == BoardEventKind.SpecialCreated && e.Phase == 0).ToArray();
+            Assert.Equal(targets, created.Select(e => e.Pos).OrderBy(p => p.Y).ThenBy(p => p.X).ToArray());
+            if (special == PieceType.Bomb)
+                Assert.All(created, e => Assert.Equal(PieceType.Bomb, e.Piece.Type));
+            else
+            {
+                // Rockets alternate orientation by cell parity, so both directions are fired.
+                Assert.All(created, e => Assert.True(e.Piece.IsRocket));
+                Assert.Contains(created, e => e.Piece.Type == PieceType.RocketH);
+                Assert.Contains(created, e => e.Piece.Type == PieceType.RocketV);
+            }
+            var fired = result.Events.Where(e => e.Kind == BoardEventKind.SpecialActivated && e.Phase == 0).Select(e => e.Pos).ToHashSet();
+            Assert.All(targets, p => Assert.Contains(p, fired));
+            Assert.Contains(new GridPos(3, 3), fired);
+        }
+
+        [Fact]
+        public void Rainbow_plus_rainbow_clears_the_whole_board()
+        {
+            var game = StartOpenBoard();
+            game.Board[3, 3].Piece = Piece.Special(PieceType.Rainbow);
+            game.Board[4, 3].Piece = Piece.Special(PieceType.Rainbow);
+            var expected = Cells(game, p => game.Board[p].Piece.IsNormal);
+
+            var result = game.Play(Move.Swap(3, 3, 4, 3));
+
+            Assert.True(result.Legal);
+            Assert.Equal(49 - 2, expected.Length);
+            Assert.Equal(expected, ClearedInPhase0(result));
+        }
+
+        [Fact]
+        public void The_last_move_completing_the_goals_wins_instead_of_losing()
+        {
+            var game = Start(@"
+                2 3 0 3
+                0 0 1 3
+                3 1 3 1", moves: 1, goals: "goal color 0 3");
+
+            var result = game.Play(Move.Swap(2, 0, 2, 1));
+
+            Assert.Equal(0, game.MovesLeft);
+            Assert.Equal(GameStatus.Won, result.StatusAfter);
+        }
+
+        [Fact]
+        public void A_segment_under_a_box_refills_from_its_own_top_and_the_segment_above_stays_put()
+        {
+            // Column 2 is split by the box at (2,1). The match at row 2 empties (2,2), below the box.
+            var game = Start(@"
+                2 3 0 3
+                1 2 B 1
+                0 0 1 2
+                3 1 0 2");
+
+            var result = game.Play(Move.Swap(2, 3, 2, 2));
+
+            Assert.True(result.Legal);
+            Assert.Contains(result.Events, e => e.Kind == BoardEventKind.Spawned && e.Pos == new GridPos(2, 2) && e.Phase == 1);
+            Assert.DoesNotContain(result.Events, e => e.Pos == new GridPos(2, 0) && e.Phase <= 1);
+            Assert.DoesNotContain(result.Events, e => e.Kind == BoardEventKind.Fell && e.Pos.X == 2 && e.Phase == 1);
+        }
+
         [Fact]
         public void Running_out_of_moves_loses()
         {
