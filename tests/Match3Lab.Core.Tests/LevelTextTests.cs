@@ -103,6 +103,22 @@ grid
         }
 
         [Fact]
+        public void Reports_correct_line_number_when_grid_row_has_wrong_width_with_comments()
+        {
+            string level = @"# Comment at top
+size 3 2
+moves 10
+colors 3
+# Comment before grid
+grid
+. . .
+. .";
+
+            var ex = Assert.Throws<LevelFormatException>(() => LevelText.Parse(level));
+            Assert.Contains("line 8: grid row 2 has 2 cells but size says 3", ex.Message);
+        }
+
+        [Fact]
         public void Hole_tokens_are_not_mistaken_for_comments()
         {
             var level = LevelText.Parse("size 3 2\nmoves 5\ncolors 3\ngoal color 0 1\ngrid\n# . #\n. # .\n");
