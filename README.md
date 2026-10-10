@@ -2,7 +2,7 @@
 
 [![tests](https://github.com/RizgarOzan/match3-lab/actions/workflows/tests.yml/badge.svg)](https://github.com/RizgarOzan/match3-lab/actions/workflows/tests.yml)
 
-**[▶ Play in browser](https://rizgarozan.github.io/match3-lab/)** — the WebGL build, 8.95 MB, no install.
+**[▶ Play in browser](https://rizgarozan.github.io/match3-lab/)** — the WebGL build, 8.96 MB, no install.
 
 A match-3 **workbench**, not a match-3 game. An engine-independent rules core, a level format
 you can read in a diff, and a bot simulator that ranks levels by how hard they are for a bot —
@@ -10,7 +10,7 @@ in seconds, before a human plays them. The numbers order levels against each oth
 a prediction of human win rates.
 
 > Status: core, simulator, CLI, Unity presentation, Level Editor and Difficulty Curve windows
-> are done (60 core tests + 2 play-mode tests); the WebGL build runs (8.95 MB, gzip-compressed,
+> are done (60 core tests + 2 play-mode tests); the WebGL build runs (8.96 MB, gzip-compressed,
 > measured) and is [live on GitHub Pages](https://rizgarozan.github.io/match3-lab/). The itch.io page is next — see [Roadmap](#roadmap).
 
 <p align="center">
