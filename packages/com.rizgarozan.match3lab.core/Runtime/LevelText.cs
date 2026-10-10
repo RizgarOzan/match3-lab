@@ -34,7 +34,7 @@ namespace Match3Lab.Core
         {
             if (text == null) throw new ArgumentNullException(nameof(text));
             var level = new LevelDefinition();
-            var rows = new List<CellSpec[]>();
+            var rows = new List<(CellSpec[] cells, int lineNo)>();
             bool inGrid = false;
             bool sawSize = false;
 
@@ -47,7 +47,7 @@ namespace Match3Lab.Core
 
                 if (inGrid)
                 {
-                    rows.Add(ParseRow(line, lineNo));
+                    rows.Add((ParseRow(line, lineNo), lineNo));
                     continue;
                 }
 
@@ -97,9 +97,9 @@ namespace Match3Lab.Core
             level.Cells = new CellSpec[level.Width * level.Height];
             for (int y = 0; y < rows.Count; y++)
             {
-                if (rows[y].Length != level.Width)
-                    throw new LevelFormatException("grid row " + (y + 1) + " has " + rows[y].Length + " cells but size says " + level.Width);
-                Array.Copy(rows[y], 0, level.Cells, y * level.Width, level.Width);
+                if (rows[y].cells.Length != level.Width)
+                    throw new LevelFormatException("grid row " + (y + 1) + " has " + rows[y].cells.Length + " cells but size says " + level.Width, rows[y].lineNo);
+                Array.Copy(rows[y].cells, 0, level.Cells, y * level.Width, level.Width);
             }
 
             level.EnsureValid();

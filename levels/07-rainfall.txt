@@ -1,0 +1,17 @@
+# Empty sky cells are filled on the opening gravity pass, so every seed rains in a different board.
+name 07 Rainfall
+size 7 8
+moves 14
+band 55 75
+colors 5
+goal color 2 30
+goal grass 8
+grid
+- - - - - - -
+- - - - - - -
+. . . . . . .
+. . . . . . .
+. .g .g .g .g . .
+. .g .g .g .g . .
+. . . . . . .
+. . . . . . .
