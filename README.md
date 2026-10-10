@@ -10,7 +10,7 @@ in seconds, before a human plays them. The numbers order levels against each oth
 a prediction of human win rates.
 
 > Status: core, simulator, CLI, Unity presentation, Level Editor and Difficulty Curve windows
-> are done (59 core tests + 2 play-mode tests); the WebGL build runs (8.95 MB, gzip-compressed,
+> are done (60 core tests + 2 play-mode tests); the WebGL build runs (8.95 MB, gzip-compressed,
 > measured) and is [live on GitHub Pages](https://rizgarozan.github.io/match3-lab/). The itch.io page is next — see [Roadmap](#roadmap).
 
 <p align="center">
@@ -38,25 +38,27 @@ almost always in-house. This is an open one:
 $ dotnet run --project tools/Match3Lab.Cli -- curve levels --runs 1000
 
 level                 bot     win%    ±     left  casc  shuf  runs/s
-01-first-steps        greedy  100.0   0.0   6.3   2.38  0     2033
-01-first-steps        random  70.1    1.4   2.9   1.11  0     10638
-02-mow-the-lawn       greedy  98.0    0.4   5.9   2.17  0     1592
-02-mow-the-lawn       random  16.7    1.2   2.3   1.12  0     7874
-03-crates             greedy  90.8    0.9   7.2   1.25  1     1718
-03-crates             random  27.3    1.4   4.0   0.70  3     6098
-04-thin-ice           greedy  80.0    1.3   5.3   0.62  242   2041
-04-thin-ice           random  29.7    1.4   3.2   0.41  374   5525
-05-hourglass          greedy  59.7    1.6   3.9   0.75  49    1786
-05-hourglass          random  9.1     0.9   2.5   0.47  73    5988
-06-cold-storage       greedy  49.7    1.6   4.3   0.77  72    1570
-06-cold-storage       random  3.1     0.5   3.2   0.48  123   5650
+01-first-steps        greedy  100.0   0.0   6.3   2.38  0     3106
+01-first-steps        random  70.1    1.4   2.9   1.11  0     15625
+02-mow-the-lawn       greedy  98.0    0.4   5.9   2.17  0     2320
+02-mow-the-lawn       random  16.7    1.2   2.3   1.12  0     11765
+03-crates             greedy  90.8    0.9   7.2   1.25  1     2451
+03-crates             random  27.3    1.4   4.0   0.70  3     10309
+04-thin-ice           greedy  80.0    1.3   5.3   0.62  242   2833
+04-thin-ice           random  29.7    1.4   3.2   0.41  374   9174
+05-hourglass          greedy  59.7    1.6   3.9   0.75  49    2525
+05-hourglass          random  9.1     0.9   2.5   0.47  73    9434
+06-cold-storage       greedy  49.7    1.6   4.3   0.77  72    2105
+06-cold-storage       random  3.1     0.5   3.2   0.48  123   6494
+07-rainfall           greedy  74.1    1.4   3.6   1.44  0     1221
+07-rainfall           random  4.2     0.6   1.4   0.71  0     7463
 ```
 
-12,000 games in about five seconds on a laptop (AMD Ryzen 9 270, all cores). Columns: win rate
+14,000 games in about 4.3 seconds on a laptop (AMD Ryzen 9 270, all cores). Columns: win rate
 with its standard error, average moves left when won (slack), cascades per move, how many of the
 1000 games dead-ended into a shuffle, and throughput.
 
-**How the six sample levels got their numbers.** They were written by hand in
+**How the first six sample levels got their numbers.** They were written by hand in
 [`levels/`](levels/). The validator rejected two of them on the first try (goal counts that the
 layout could not satisfy). The first curve came back 100 / 100 / 99 / 99 / 94 / 85 % — which
 turned out to be a bug in the *bot*, not the levels: it was cloning the game's RNG and choosing
@@ -84,9 +86,9 @@ packages/com.rizgarozan.match3lab.core/   rules core — pure C#, no UnityEngine
   Runtime/                                board, matching, specials, gravity, goals, level text format
   Runtime/Simulation/                     bots and the parallel simulator
 src/Match3Lab.Core/                       .NET project that compiles the same files for tests and tools
-tests/Match3Lab.Core.Tests/               xUnit — 59 tests pin the rules, determinism, the simulator, the tuner and the evolver
+tests/Match3Lab.Core.Tests/               xUnit — 60 tests pin the rules, determinism, the simulator, the tuner and the evolver
 tools/Match3Lab.Cli/                      m3lab: validate · show · sim · curve · check · tune
-levels/                                   six hand-authored levels, easy to hard
+levels/                                   seven hand-authored levels (07 came from a contributor)
 docs/decisions/                           why things are the way they are (ADRs)
 unity/                                    Unity 6 project — playable board, Level Editor, Difficulty Curve, play-mode tests
 ```
@@ -144,7 +146,7 @@ grid
 . . . . . . .
 ```
 
-`.` random piece · `0-5` fixed colour · `#` hole · `b`/`B` box with 1/2 hit points ·
+`.` random piece · `-` starts empty, filled by the first gravity pass · `0-5` fixed colour · `#` hole · `b`/`B` box with 1/2 hit points ·
 `g`/`G` grass under · `i`/`I` ice over. `band 50 70` is the greedy win rate (percent) the
 level is meant to have; `m3lab check` and CI fail a level that plays outside it. It round-trips through the parser and the writer, and
 the validator explains exactly what is wrong when something is.
