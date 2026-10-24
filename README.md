@@ -220,6 +220,13 @@ The easiest way in is a new level: one text file, and CI plays it 1000 times to 
 as its `band` line says. Bots and rule fixes are welcome too. See [CONTRIBUTING.md](CONTRIBUTING.md)
 and the [`good first issue`](https://github.com/RizgarOzan/match3-lab/labels/good%20first%20issue) list.
 
+Merged so far from outside contributors:
+
+- [@Shadow16Ua](https://github.com/Shadow16Ua): a grid row of the wrong width now reports its
+  line in the level file ([#8](https://github.com/RizgarOzan/match3-lab/pull/8)).
+- [@jay23606](https://github.com/jay23606): level 07 Rainfall, the first level with empty starting
+  cells ([#9](https://github.com/RizgarOzan/match3-lab/pull/9)).
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
