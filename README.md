@@ -185,6 +185,8 @@ Needs the .NET 10 SDK. The Unity side needs Unity 6000.3 with the WebGL module.
 
 ## Roadmap
 
+Latest release: [v0.1.0](https://github.com/RizgarOzan/match3-lab/releases/tag/v0.1.0); what changed is in [CHANGELOG.md](CHANGELOG.md).
+
 1. ~~Unity presentation~~ — done; WebGL build [on GitHub Pages](https://rizgarozan.github.io/match3-lab/); an **itch.io page** (text and GIF) is written but not published yet.
 2. ~~Level editor window~~ — done.
 3. ~~Difficulty curve window~~ — done.

@@ -1,8 +1,9 @@
 # Changelog
 
 What changed in the project, newest first. Contributions from outside the project are named.
+v0.1.0 is the first tagged release and covers everything below.
 
-## 2026-10 — first outside contributions
+## v0.1.0 (2026-10-31) — first outside contributions
 
 - Level 07 "Rainfall", the first level with empty starting cells, by
   [@jay23606](https://github.com/jay23606) ([#9](https://github.com/RizgarOzan/match3-lab/pull/9)).
