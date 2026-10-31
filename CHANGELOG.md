@@ -1,7 +1,7 @@
 # Changelog
 
 What changed in the project, newest first. Contributions from outside the project are named.
-v0.1.0 is the first tagged release and covers everything below.
+v0.1.0 is the first release and covers everything below.
 
 ## v0.1.0 (2026-10-31) — first outside contributions
 
