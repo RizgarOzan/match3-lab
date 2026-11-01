@@ -13,6 +13,24 @@ a prediction of human win rates.
 > are done (60 core tests + 2 play-mode tests); the WebGL build runs (8.96 MB, gzip-compressed,
 > measured) and is [live on GitHub Pages](https://rizgarozan.github.io/match3-lab/). An itch.io page is written but not published yet — see [Roadmap](#roadmap).
 
+**The hard part.** A difficulty number is only useful if it's honest. My first bot won
+Hourglass 94% of the time and Cold Storage 85%, so the levels looked easy. The bot was cheating:
+when it tried moves out, it copied the game's random number generator too, so it knew exactly
+which pieces would fall next. Taking that away cost it about 20 points of win rate on both levels
+([decision 0003](docs/decisions/0003-bots-and-the-foresight-bug.md)).
+
+**How I approached it.** The rules live in a plain C# package with no Unity reference, so the
+game, the CLI and the tests all run the same code. Bots try moves on a copy of the game whose
+future refills come from a different seed, and a test checks that the copy can't see the real
+spawn stream. Results are integer counts merged by addition, so a parallel run gives the same
+numbers as a single-threaded one. Each level file declares its difficulty band, and CI fails if a
+change pushes a level out of it.
+
+**What I'd change.** The bands are fitted to the bot, not to people. The next real step is 8 to
+15 players on the WebGL build and a bot-vs-human win rate per level. I'd also give the greedy bot
+one move of look-ahead for combos, add bounds checks to the `Board` indexer, and move
+`Parallel.For` out of the package Unity loads, since WebGL can't run it.
+
 <p align="center">
   <img src="docs/media/bot-plays-level-2.gif" width="300" alt="The greedy bot plays level 2, Mow the Lawn: two moves set off long cascades, a rocket appears and the grass goal drops from 21 to 6">
 </p>
@@ -123,6 +141,36 @@ unity/                                    Unity 6 project — playable board, Le
   [decision 0002](docs/decisions/0002-resolution-rules.md).
 - **Bots see what a player sees.** Look-ahead clones use an imagined refill stream, never the
   real one.
+
+The fix for the foresight bug is one line in `Game.cs`. A bot that looks ahead gets the second
+copy, so it has to guess the refills like a player does:
+
+```csharp
+/// <summary>An exact deep copy: same board, same future spawns. For replays and save states.</summary>
+public Game Clone() => new Game(this, _rng.Clone());
+
+/// <summary>
+/// A deep copy whose future spawns come from <paramref name="futureSeed"/> instead of the
+/// real stream. Bots that look ahead must use this one: cloning the RNG as well would let
+/// them see exactly which pieces will fall, which no player can.
+/// </summary>
+public Game CloneWithUnknownFuture(ulong futureSeed) => new Game(this, new Pcg32(futureSeed, 0xF07EC457));
+```
+
+The simulator in `Simulator.cs` runs games in parallel without losing determinism. Each game's
+seed is its index, each thread keeps its own counts, and the counts merge by addition, so the
+result is the same whatever order the threads finish in (there's a test for it):
+
+```csharp
+Parallel.For(0, options.Runs, parallel,
+    () => new Worker(botFactory(), NewResult(level, "", 0)),
+    (i, state, worker) =>
+    {
+        PlayOne(level, worker.Bot, options.FirstSeed + (ulong)i, worker.Partial, worker.Buffer);
+        return worker;
+    },
+    worker => { lock (gate) Merge(total, worker.Partial); });
+```
 
 ### The level format
 
