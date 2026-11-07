@@ -2,16 +2,17 @@
 
 [![tests](https://github.com/RizgarOzan/match3-lab/actions/workflows/tests.yml/badge.svg)](https://github.com/RizgarOzan/match3-lab/actions/workflows/tests.yml)
 
-**[▶ Play in browser](https://rizgarozan.github.io/match3-lab/)** — the WebGL build, 8.96 MB, no install.
+[Play in the browser](https://rizgarozan.github.io/match3-lab/) (WebGL build, 8.96 MB gzipped, nothing to install).
 
-A match-3 **workbench**, not a match-3 game. An engine-independent rules core, a level format
-you can read in a diff, and a bot simulator that ranks levels by how hard they are for a bot —
-in seconds, before a human plays them. The numbers order levels against each other; they are not
-a prediction of human win rates.
+A bot simulator for match-3 levels: it plays each level thousands of times in seconds and ranks
+levels by how hard they are for the bot. That ranks levels against each other; it doesn't predict
+human win rates. Rules live in a plain C# core with no Unity reference, levels are text files.
 
-> Status: core, simulator, CLI, Unity presentation, Level Editor and Difficulty Curve windows
-> are done (60 core tests + 2 play-mode tests); the WebGL build runs (8.96 MB, gzip-compressed,
-> measured) and is [live on GitHub Pages](https://rizgarozan.github.io/match3-lab/). An itch.io page is written but not published yet — see [Roadmap](#roadmap).
+```
+git clone https://github.com/RizgarOzan/match3-lab.git && cd match3-lab && dotnet run --project tools/Match3Lab.Cli -- curve levels --runs 1000
+```
+
+Needs the .NET 10 SDK. 60 core tests pass, plus 2 Unity play-mode tests.
 
 <p align="center">
   <img src="docs/media/bot-plays-level-2.gif" width="300" alt="The greedy bot plays level 2, Mow the Lawn: two moves set off long cascades, a rocket appears and the grass goal drops from 21 to 6">
@@ -23,16 +24,9 @@ a prediction of human win rates.
   <img src="docs/media/level-05-hourglass.png" width="30%" alt="Level 5 Hourglass: holes shape the board, grass under the neck">
   <img src="docs/media/level-06-cold-storage.png" width="30%" alt="Level 6 Cold Storage: boxes, two-layer ice and grass at once">
 </p>
-<p align="center"><sub>Screenshots taken from the WebGL build with the bot playing (<code>?auto=1</code>). Every sprite is generated at start-up; the project ships no art.</sub></p>
+<p align="center"><sub>Screenshots from the WebGL build with the bot playing (<code>?auto=1</code>). Every sprite is generated at start-up, so the project ships no art.</sub></p>
 
-**Contents:** [The question it answers](#the-question-it-answers) · [Why not …](#why-not-) ·
-[What is in the box](#what-is-in-the-box) · [Try it](#try-it) · [Roadmap](#roadmap) ·
-[Known issues](#known-issues) · [Contributing](#contributing) · [License](#license)
-
-## The question it answers
-
-Casual studios tune every level by having bots play it thousands of times. That tooling is
-almost always in-house. This is an open one:
+## What it does
 
 ```
 $ dotnet run --project tools/Match3Lab.Cli -- curve levels --runs 1000
@@ -54,77 +48,50 @@ level                 bot     win%    ±     left  casc  shuf  runs/s
 07-rainfall           random  4.2     0.6   1.4   0.71  0     7463
 ```
 
-14,000 games in about 4.3 seconds on a laptop (AMD Ryzen 9 270, all cores). Columns: win rate
-with its standard error, average moves left when won (slack), cascades per move, how many of the
-1000 games dead-ended into a shuffle, and throughput.
+14,000 games in about 4.3 seconds on a laptop (AMD Ryzen 9 270, all cores). Columns: win rate and
+its standard error, moves left on a win, cascades per move, shuffles out of 1000 games, throughput.
+I used a greedy bot rather than a trained ML agent because with a fixed seed it gives the same
+number every run, and a CI check needs that.
 
-**How the first six sample levels got their numbers.** They were written by hand in
-[`levels/`](levels/). The validator rejected two of them on the first try (goal counts that the
-layout could not satisfy). The first curve came back 100 / 100 / 99 / 99 / 94 / 85 % — which
-turned out to be a bug in the *bot*, not the levels: it was cloning the game's RNG and choosing
-moves with knowledge of which pieces would fall next. With that fixed
-([decision 0003](docs/decisions/0003-bots-and-the-foresight-bug.md)) the hard levels dropped by
-up to 20 points, and one pass of move-budget changes produced the curve above. Each iteration
-took about five seconds.
+## The hard part
 
-## Why not …
+My first bot won Hourglass 94% of the time and Cold Storage 85%, so both looked easy. It was
+cheating: when it tried moves on a copy of the game it copied the RNG too, so it knew which pieces
+would fall next. Look-ahead copies now get refills from a different seed
+(`Game.CloneWithUnknownFuture`), with a test that the copy can't see the real spawn stream. That
+cost the bot about 20 points on both levels
+([decision 0003](docs/decisions/0003-bots-and-the-foresight-bug.md)).
 
-- **… playtest with people?** Do that too — people decide whether a level is fun. They cannot
-  play a level 1000 times after every tweak; the greedy bot can, in under a second on a laptop, so the
-  playtest starts from a level that is already in its difficulty band.
-- **… a match-3 template from the Asset Store?** A template gives you a game. Here the rules
-  run without Unity, so the same code is played by bots in CI and on the command line.
-- **… train a machine-learning agent?** It needs training per rule set and is not reproducible
-  run to run. A greedy bot with a fixed seed gives the same number every time, which is what a
-  CI check needs. The numbers are *relative* difficulty; they are not a prediction of human win
-  rates (see [Roadmap](#roadmap) item 5).
+The simulator runs games in parallel and still gives the same result as a single thread: each
+game's seed is its index and per-thread integer counts are merged by addition (`Simulator.cs`,
+with a test).
 
-## What is in the box
+## Layout
 
 ```
-packages/com.rizgarozan.match3lab.core/   rules core — pure C#, no UnityEngine (a Unity package; the single source of truth)
-  Runtime/                                board, matching, specials, gravity, goals, level text format
-  Runtime/Simulation/                     bots and the parallel simulator
+packages/com.rizgarozan.match3lab.core/   rules core, pure C#, no UnityEngine (the single source of truth)
+  Runtime/Simulation/                     bots, simulator, move-budget tuner, layout evolver
 src/Match3Lab.Core/                       .NET project that compiles the same files for tests and tools
-tests/Match3Lab.Core.Tests/               xUnit — 60 tests pin the rules, determinism, the simulator, the tuner and the evolver
-tools/Match3Lab.Cli/                      m3lab: validate · show · sim · curve · check · tune
-levels/                                   seven hand-authored levels (07 came from a contributor)
-docs/decisions/                           why things are the way they are (ADRs)
-unity/                                    Unity 6 project — playable board, Level Editor, Difficulty Curve, play-mode tests
+tests/Match3Lab.Core.Tests/               xUnit: rules, determinism, simulator, tuner, evolver
+tools/Match3Lab.Cli/                      m3lab: validate, show, sim, curve, check, tune
+levels/                                   seven hand-written levels (07 came from a contributor)
+docs/decisions/                           ADRs
+unity/                                    Unity 6 project: playable board, editor windows, play-mode tests
 ```
 
-### The Unity side
+Same level plus same seed gives the same game. Randomness is an in-repo PCG32 checked against its
+reference outputs. CI checks this on .NET; nothing compares Mono and IL2CPP yet
+([decision 0001](docs/decisions/0001-pure-core-and-determinism.md)). `Game.Play(move)` returns the
+events of a move grouped by phase, and the Unity board only replays them. The rules (rockets, bombs,
+rainbows and their combos, grass, ice, boxes, holes) and the reasons behind them are in
+[decision 0002](docs/decisions/0002-resolution-rules.md).
 
-- **Playable board** that replays the core's event stream (swap → clears → falls → next
-  cascade) with pooled sprites; every sprite is drawn at start-up from a signed-distance
-  function, so the project ships no art and no import settings. "Bot: on" lets the greedy bot
-  play the level on screen. ([decision 0004](docs/decisions/0004-unity-presentation.md))
-- **Level Editor window** (`Match3 Lab → Level Editor`): paint cells and layers, edit goals,
-  live validation, start-board preview by seed, simulate in place against a target win-rate
-  band, and **Auto-tune moves** — the tuner binary-searches the move budget that lands the
-  level in the band, in a couple of seconds.
-- **Difficulty Curve window** (`Match3 Lab → Difficulty Curve`): the whole `levels/` folder as
-  a bar chart with the band shaded, a table, CSV export and click-through to the editor.
-- **Play-mode smoke tests** load the generated demo scene and let the bot play it, headless:
-  `Unity -batchmode -projectPath unity -runTests -testPlatform PlayMode`.
-- The scene is generated by `Match3 Lab → Create Demo Scene`; levels reach the build through
-  `Match3 Lab → Sync Levels From Repo` (also runs before every build).
+In Unity, `Match3 Lab → Create Demo Scene` builds the playable scene and `Match3 Lab → Level Editor`
+lets you paint a level, simulate it in place and auto-tune its moves. `Match3 Lab → Difficulty Curve`
+charts the whole `levels/` folder against its bands
+([decision 0004](docs/decisions/0004-unity-presentation.md)).
 
-### The rules core
-
-- **Deterministic by construction.** Same level + same seed = same game. CI checks this on
-  .NET; the Unity build runs the same source on Mono and IL2CPP, but no test compares runtimes yet. Randomness is an in-repo PCG32 verified against the reference outputs; `System.Random`
-  is never used. ([decision 0001](docs/decisions/0001-pure-core-and-determinism.md))
-- **Events, not callbacks.** `Game.Play(move)` returns the full list of what happened — swaps,
-  clears, obstacle hits, specials created and fired, falls, spawns — grouped by phase. The
-  presentation layer replays it; it never computes a rule.
-- **Royal-Match-shaped rule set:** rockets, bombs, rainbows and their six combinations; grass,
-  ice, boxes and holes; tap-to-fire. Every rule and its reason is in
-  [decision 0002](docs/decisions/0002-resolution-rules.md).
-- **Bots see what a player sees.** Look-ahead clones use an imagined refill stream, never the
-  real one.
-
-### The level format
+## The level format
 
 ```
 name 05 Hourglass
@@ -146,12 +113,15 @@ grid
 . . . . . . .
 ```
 
-`.` random piece · `-` starts empty, filled by the first gravity pass · `0-5` fixed colour · `#` hole · `b`/`B` box with 1/2 hit points ·
-`g`/`G` grass under · `i`/`I` ice over. `band 50 70` is the greedy win rate (percent) the
-level is meant to have; `m3lab check` and CI fail a level that plays outside it. It round-trips through the parser and the writer, and
-the validator explains exactly what is wrong when something is.
+`.` random piece, `-` starts empty and is filled by the first gravity pass, `0-5` fixed colour,
+`#` hole, `b`/`B` box with 1/2 hit points, `g`/`G` grass under, `i`/`I` ice over. `band 50 70` is
+the greedy win rate (percent) the level should have. `m3lab check` and CI fail any level that plays
+outside its band. The format round-trips through the parser and writer, and the validator tells
+you what's wrong when a file is broken.
 
-## Try it
+## Running it
+
+You need the .NET 10 SDK. The Unity project needs Unity 6000.3 with the WebGL module.
 
 ```
 git clone https://github.com/RizgarOzan/match3-lab.git && cd match3-lab
@@ -164,71 +134,38 @@ dotnet run --project tools/Match3Lab.Cli -- check levels
 dotnet run --project tools/Match3Lab.Cli -- tune levels/01-first-steps.txt --band 0.55:0.80
 ```
 
-The last one answers "how many moves should this level have?":
+`tune` binary-searches the move budget for a band (First Steps: 5 moves instead of 11, 70.2%).
+`--write` saves it back into the file.
 
-```
-01 First Steps — band 55–80% (greedy, 400 runs per step)
-  11 moves → 100.0%
-  60 moves → 100.0%
-  1 moves → 0.2%
-  30 moves → 100.0%
-  15 moves → 100.0%
-  8 moves → 95.8%
-  4 moves → 51.0%
-  6 moves → 84.2%
-  5 moves → 70.2%
-recommend 5 moves (70.2%)  [was 11]
-```
+Play-mode tests load the demo scene and let the bot play it headless:
+`Unity -batchmode -projectPath unity -runTests -testPlatform PlayMode`.
 
-Add `--write` to put the recommendation back into the file (only the `moves` line changes).
-Needs the .NET 10 SDK. The Unity side needs Unity 6000.3 with the WebGL module.
+## What I'd change next
 
-## Roadmap
+The bands are fitted to the bot. The next real step is 8 to 15 players on the WebGL build and a
+bot-vs-human win rate per level. Then I'd give the greedy bot one move of
+look-ahead for combos, add bounds checks to the `Board` indexer, and move `Parallel.For` out of the
+package Unity loads, since WebGL can't run it.
 
-What changed so far, with outside contributions named: [CHANGELOG.md](CHANGELOG.md).
-
-1. ~~Unity presentation~~ — done; WebGL build [on GitHub Pages](https://rizgarozan.github.io/match3-lab/); an **itch.io page** (text and GIF) is written but not published yet.
-2. ~~Level editor window~~ — done.
-3. ~~Difficulty curve window~~ — done.
-4. **Level suggestion loop** — two passes now land a level in a target band: `m3lab tune`
-   binary-searches the move budget, and `LevelEvolver` hill-climbs the layout itself — obstacle
-   layers, goal sizes, colour count, board shape
-   ([decision 0005](docs/decisions/0005-layout-evolver.md)). The evolver is core-only so far;
-   next is exposing it behind a confirmation step, since unlike a budget change it rewrites the
-   designer's grid.
-5. **A better "competent player"** — a bot with one ply of look-ahead for combos, and weights
-   fitted to real play sessions once the demo has collected some.
+`LevelEvolver` can already reshape a level's layout to hit a band
+([decision 0005](docs/decisions/0005-layout-evolver.md)), but it's core-only. Since it rewrites the
+designer's grid, it needs a confirmation step before it goes into the CLI or the editor.
 
 ## Known issues
 
-Found by reading the code against [decision 0002](docs/decisions/0002-resolution-rules.md);
-each one is a rule bug, not a crash. The remaining ones change measured difficulty, so they are
-fixed together with a re-measured curve rather than one at a time.
-
-- ~~A cell that has ice over it and grass under it never loses its grass layer.~~ Fixed: a blast
-  crossing the cell now peels a grass layer too, per ADR 0002. The shipped curve is unchanged
-  because no shipped level puts grass under ice.
-- ~~Because a piece under ice is not removed in the same phase, an ice-covered match group can be
-  seen twice and damage an adjacent box twice.~~ Fixed: box damage from a match is keyed on its
-  source cell for the whole move, so a persisting iced group costs the box a single hit point, per
-  ADR 0002. The shipped curve is unchanged because no shipped level puts a box next to ice.
-- `MoveBudgetTuner` assumes win rate is monotone in the move budget. It is very nearly so, but
-  the bot re-plans when the budget changes, so a binary search can land one move off the edge
-  of the band.
+`MoveBudgetTuner` assumes win rate goes up with the move budget. That's very nearly true, but the
+bot re-plans when the budget changes, so the binary search can land one move outside the band. The
+rule bugs fixed so far are in [CHANGELOG.md](CHANGELOG.md).
 
 ## Contributing
 
-The easiest way in is a new level: one text file, and CI plays it 1000 times to prove it is as hard
-as its `band` line says. Bots and rule fixes are welcome too. See [CONTRIBUTING.md](CONTRIBUTING.md)
+The easiest way in is a new level: one text file, and CI plays it 1000 times to check its `band`
+line. Bots and rule fixes are welcome too. See [CONTRIBUTING.md](CONTRIBUTING.md)
 and the [`good first issue`](https://github.com/RizgarOzan/match3-lab/labels/good%20first%20issue) list.
 
-Merged so far from outside contributors:
-
-- [@Shadow16Ua](https://github.com/Shadow16Ua): a grid row of the wrong width now reports its
-  line in the level file ([#8](https://github.com/RizgarOzan/match3-lab/pull/8)).
-- [@jay23606](https://github.com/jay23606): level 07 Rainfall, the first level with empty starting
-  cells ([#9](https://github.com/RizgarOzan/match3-lab/pull/9)).
+Thanks to [@Shadow16Ua](https://github.com/Shadow16Ua) ([#8](https://github.com/RizgarOzan/match3-lab/pull/8))
+and [@jay23606](https://github.com/jay23606), who added level 07 Rainfall ([#9](https://github.com/RizgarOzan/match3-lab/pull/9)).
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE).
